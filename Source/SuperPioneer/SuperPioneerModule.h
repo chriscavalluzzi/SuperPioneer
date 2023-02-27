@@ -30,10 +30,12 @@ private:
 
 	// Jumping
 
-	const float superJumpMaxZVelocityMultiplier = 30.0f;
+	const float superJumpMaxZVelocityMultiplier = 7.0f;
+	const float superJumpMinZVelocityMultiplier = 3.0f;
 
 	float defaultJumpZVelocity;
 
+	float CalculateJumpZVelocity(AFGCharacterPlayer* player, float heldDuration);
 	void SetPlayerJumpZVelocity(AFGCharacterPlayer* player, float newZVelocity);
 	float GetPlayerJumpZVelocity(AFGCharacterPlayer* player);
 };

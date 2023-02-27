@@ -38,11 +38,8 @@ void FSuperPioneerModule::RegisterHooks() {
 
 	SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterPlayer::Jump, examplePlayerCharacter, [this](auto& scope, AFGCharacterPlayer* self) {
 		UE_LOG(LogTemp, Warning, TEXT("[SP] Jumping"))
-		self->GetFGMovementComponent()->JumpZVelocity = this->defaultJumpZVelocity * 3.0;
-		//self->GetFGMovementComponent()->mBoostJumpZMultiplier = 7.0;
-		//self->GetFGMovementComponent()->mBoostJumpVelocityMultiplier = 1.5;
+		this->SetPlayerJumpZVelocity(self,this->CalculateJumpZVelocity(self,1.0));
 	});
-	//AFGCharacterBase* exampleCharacterBase = GetMutableDefault<AFGCharacterBase>();
 	SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterBase::CalculateFallDamage, examplePlayerCharacter, [](auto& scope, const AFGCharacterBase* self, float zSpeed) {
 		// Remove fall damage
 		scope.Override((int32)0);
@@ -84,6 +81,15 @@ bool FSuperPioneerModule::GetIsPlayerSprinting(AFGCharacterPlayer* player) {
 }
 
 // Jumping
+
+float FSuperPioneerModule::CalculateJumpZVelocity(AFGCharacterPlayer* player, float heldDuration) {
+	float minSpeed = this->defaultMaxSprintSpeed;
+	float maxSpeed = superSprintMaxSpeed;
+	float currentSpeed = this->GetPlayerSprintSpeed(player);
+	float minJump = this->defaultJumpZVelocity * superJumpMinZVelocityMultiplier;
+	float maxJump = this->defaultJumpZVelocity * superJumpMaxZVelocityMultiplier * heldDuration;
+	return ((maxJump - minJump) / (maxSpeed - minSpeed)) * (currentSpeed - minSpeed) + minJump;
+}
 
 void FSuperPioneerModule::SetPlayerJumpZVelocity(AFGCharacterPlayer* player, float newZVelocity) {
 	player->GetFGMovementComponent()->JumpZVelocity = newZVelocity;
