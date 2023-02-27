@@ -13,16 +13,15 @@ void FSuperPioneerModule::StartupModule() {
 	isSprintPressed = false;
 	sprintDuration = 0.0;
 	#if !WITH_EDITOR
-	defaultMaxSprintSpeed = GetDefault<AFGCharacterPlayer>()->GetFGMovementComponent()->mMaxSprintSpeed;
+	AFGCharacterPlayer* examplePlayerCharacter = GetMutableDefault<AFGCharacterPlayer>();
+	defaultMaxSprintSpeed = examplePlayerCharacter->GetFGMovementComponent()->mMaxSprintSpeed;
+	defaultJumpZVelocity = examplePlayerCharacter->GetFGMovementComponent()->JumpZVelocity;
 	RegisterHooks();
 	#endif
 }
 
 void FSuperPioneerModule::RegisterHooks() {
 	AFGCharacterPlayer* examplePlayerCharacter = GetMutableDefault<AFGCharacterPlayer>();
-	SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterPlayer::Jump, examplePlayerCharacter, [](auto& scope, AFGCharacterPlayer* self) {
-		UE_LOG(LogTemp, Warning, TEXT("[SP] Jumping"))
-	});
 	SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterPlayer::SprintPressed, examplePlayerCharacter, [this](auto& scope, AFGCharacterPlayer* self) {
 		UE_LOG(LogTemp, Warning, TEXT("[SP] Sprinting"))
 			this->SetPlayerSprintSpeed(self, this->defaultMaxSprintSpeed);
@@ -36,7 +35,21 @@ void FSuperPioneerModule::RegisterHooks() {
 		this->SprintDurationTick(self, deltaTime);
 		this->SprintTick(self);
 	});
+
+	SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterPlayer::Jump, examplePlayerCharacter, [this](auto& scope, AFGCharacterPlayer* self) {
+		UE_LOG(LogTemp, Warning, TEXT("[SP] Jumping"))
+		self->GetFGMovementComponent()->JumpZVelocity = this->defaultJumpZVelocity * 3.0;
+		//self->GetFGMovementComponent()->mBoostJumpZMultiplier = 7.0;
+		//self->GetFGMovementComponent()->mBoostJumpVelocityMultiplier = 1.5;
+	});
+	//AFGCharacterBase* exampleCharacterBase = GetMutableDefault<AFGCharacterBase>();
+	SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterBase::CalculateFallDamage, examplePlayerCharacter, [](auto& scope, const AFGCharacterBase* self, float zSpeed) {
+		// Remove fall damage
+		scope.Override((int32)0);
+	});
 }
+
+// Sprinting
 
 void FSuperPioneerModule::SprintTick(AFGCharacterPlayer* player) {
 	if (GetIsPlayerSprinting(player)) {
@@ -68,6 +81,16 @@ float FSuperPioneerModule::GetPlayerSprintSpeed(AFGCharacterPlayer* player) {
 
 bool FSuperPioneerModule::GetIsPlayerSprinting(AFGCharacterPlayer* player) {
 	return player->GetFGMovementComponent()->GetIsSprinting();
+}
+
+// Jumping
+
+void FSuperPioneerModule::SetPlayerJumpZVelocity(AFGCharacterPlayer* player, float newZVelocity) {
+	player->GetFGMovementComponent()->JumpZVelocity = newZVelocity;
+}
+
+float FSuperPioneerModule::GetPlayerJumpZVelocity(AFGCharacterPlayer* player) {
+	return player->GetFGMovementComponent()->JumpZVelocity;
 }
 
 IMPLEMENT_GAME_MODULE(FSuperPioneerModule, SuperPioneer);

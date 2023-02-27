@@ -10,11 +10,12 @@ public:
 	virtual bool IsGameModule() const override { return true; }
 
 private:
-	const float superSprintMaxSpeed = 10000.0;
-	
-	//AFGCharacterPlayer* PlayerCharacter;
 	
 	void RegisterHooks();
+
+	// Sprinting
+
+	const float superSprintMaxSpeed = 10000.0f;
 
 	bool isSprintPressed;
 	float sprintDuration;
@@ -26,4 +27,13 @@ private:
 	void SetPlayerSprintSpeed(AFGCharacterPlayer* player, float newSprintSpeed);
 	float GetPlayerSprintSpeed(AFGCharacterPlayer* player);
 	bool GetIsPlayerSprinting(AFGCharacterPlayer* player);
+
+	// Jumping
+
+	const float superJumpMaxZVelocityMultiplier = 30.0f;
+
+	float defaultJumpZVelocity;
+
+	void SetPlayerJumpZVelocity(AFGCharacterPlayer* player, float newZVelocity);
+	float GetPlayerJumpZVelocity(AFGCharacterPlayer* player);
 };
