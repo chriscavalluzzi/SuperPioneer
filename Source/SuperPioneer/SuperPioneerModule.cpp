@@ -3,12 +3,6 @@
 #include "FGCharacterPlayer.h"
 #include "FGCharacterMovementComponent.h"
 
-/*
-bool CanJump() const;
-
-Maybe need to do a check inside each subscribe to see if self == playercharacter? for multiplayer
-*/
-
 void FSuperPioneerModule::StartupModule() {
 	isSprintPressed = false;
 	sprintDuration = 0.0;
@@ -22,10 +16,22 @@ void FSuperPioneerModule::StartupModule() {
 
 void FSuperPioneerModule::RegisterHooks() {
 	AFGCharacterPlayer* examplePlayerCharacter = GetMutableDefault<AFGCharacterPlayer>();
+
+	SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterPlayer::SetupPlayerInputComponent, examplePlayerCharacter, [this](auto& scope, AFGCharacterPlayer* self, UInputComponent* PlayerInputComponent) {
+		if (self->IsLocallyControlled() && self != this->localPlayer) {
+			// After local player's InputComponent is ready, setup managers and tie to player
+			// Called after every spawn
+			UE_LOG(LogTemp, Warning, TEXT("[SP] New local player detected, updating pointer"))
+			this->localPlayer = self;
+			sprintManager = NewObject<USuperSprintManager>(self);
+			sprintManager->Setup(self, PlayerInputComponent);
+		}
+	});
+
 	SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterPlayer::SprintPressed, examplePlayerCharacter, [this](auto& scope, AFGCharacterPlayer* self) {
 		UE_LOG(LogTemp, Warning, TEXT("[SP] Sprinting"))
-			this->SetPlayerSprintSpeed(self, this->defaultMaxSprintSpeed);
-			this->sprintDuration = 0.0;
+		this->SetPlayerSprintSpeed(self, this->defaultMaxSprintSpeed);
+		this->sprintDuration = 0.0;
 	});
 	SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterPlayer::SprintReleased, examplePlayerCharacter, [this](auto& scope, AFGCharacterPlayer* self) {
 		UE_LOG(LogTemp, Warning, TEXT("[SP] Stopping Sprinting"))
@@ -50,17 +56,17 @@ void FSuperPioneerModule::RegisterHooks() {
 
 void FSuperPioneerModule::SprintTick(AFGCharacterPlayer* player) {
 	if (GetIsPlayerSprinting(player)) {
-		UE_LOG(LogTemp, Warning, TEXT("[SP] Attempting to Set Speed... %f"), CalculateSprintSpeed(sprintDuration))
+		//UE_LOG(LogTemp, Warning, TEXT("[SP] Attempting to Set Speed... %f"), CalculateSprintSpeed(sprintDuration))
 		SetPlayerSprintSpeed(player, CalculateSprintSpeed(sprintDuration));
-		UE_LOG(LogTemp, Warning, TEXT("[SP] Final Speed... %f"), GetPlayerSprintSpeed(player))
+		//UE_LOG(LogTemp, Warning, TEXT("[SP] Final Speed... %f"), GetPlayerSprintSpeed(player))
 	}
 }
 
 void FSuperPioneerModule::SprintDurationTick(AFGCharacterPlayer* player, float deltaTime) {
-	UE_LOG(LogTemp, Warning, TEXT("[SP] Passed player sprinting?... %s"), (GetIsPlayerSprinting(player) ? TEXT("true") : TEXT("false")))
+	//UE_LOG(LogTemp, Warning, TEXT("[SP] Passed player sprinting?... %s"), (GetIsPlayerSprinting(player) ? TEXT("true") : TEXT("false")))
 	if (GetIsPlayerSprinting(player)) {
 		sprintDuration += deltaTime;
-		UE_LOG(LogTemp, Warning, TEXT("[SP] Sprint duration... %f"), sprintDuration)
+		//UE_LOG(LogTemp, Warning, TEXT("[SP] Sprint duration... %f"), sprintDuration)
 	}
 }
 
