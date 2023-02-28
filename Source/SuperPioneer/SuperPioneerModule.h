@@ -3,7 +3,7 @@
 #include "Modules/ModuleManager.h"
 #include "GameFramework/Character.h"
 #include "FGCharacterPlayer.h"
-#include "SuperSprintManager.h"
+#include "SuperPioneerMovementManager.h"
 
 class FSuperPioneerModule : public FDefaultGameModuleImpl {
 public:
@@ -11,39 +11,12 @@ public:
 	virtual bool IsGameModule() const override { return true; }
 
 private:
-	
-	// General
 
 	AFGCharacterPlayer* localPlayer;
 
 	void RegisterHooks();
 
-	// Sprinting
-
-	const float superSprintMaxSpeed = 10000.0f;
-
-	USuperSprintManager* sprintManager;
-
-	bool isSprintPressed;
-	float sprintDuration;
-	float defaultMaxSprintSpeed;
-
-	void SprintTick(AFGCharacterPlayer* player);
-	void SprintDurationTick(AFGCharacterPlayer* player, float deltaTime);
-	float CalculateSprintSpeed(float duration);
-	void SetPlayerSprintSpeed(AFGCharacterPlayer* player, float newSprintSpeed);
-	float GetPlayerSprintSpeed(AFGCharacterPlayer* player);
-	bool GetIsPlayerSprinting(AFGCharacterPlayer* player);
-
-	// Jumping
-
-	const float superJumpMaxZVelocityMultiplier = 7.0f;
-	const float superJumpMinZVelocityMultiplier = 3.0f;
-
-	float defaultJumpZVelocity;
-
-	float CalculateJumpZVelocity(AFGCharacterPlayer* player, float heldDuration);
-	void SetPlayerJumpZVelocity(AFGCharacterPlayer* player, float newZVelocity);
-	float GetPlayerJumpZVelocity(AFGCharacterPlayer* player);
+	USuperPioneerMovementManager* movementManager;
+	FName movementManagerName;
 
 };
