@@ -4,7 +4,7 @@
 #include "FGCharacterMovementComponent.h"
 
 void FSuperPioneerModule::StartupModule() {
-	movementManagerName = FName(TEXT("SuperPioneer.MovementManager"));
+	SPMovementComponentName = FName(TEXT("SuperPioneer.MovementComponent"));
 	#if !WITH_EDITOR
 	RegisterHooks();
 	#endif
@@ -15,12 +15,13 @@ void FSuperPioneerModule::RegisterHooks() {
 
 	SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterPlayer::SetupPlayerInputComponent, examplePlayerCharacter, [this](auto& scope, AFGCharacterPlayer* self, UInputComponent* PlayerInputComponent) {
 		if (self->IsLocallyControlled() && self != this->localPlayer) {
-			// After local player's InputComponent is ready, setup manager and tie to player
+			// After the local player's InputComponent is ready, setup the movement component and tie it to the player
 			// Called after every spawn
 			UE_LOG(LogTemp, Warning, TEXT("[SP] New local player detected, updating pointer"))
 			this->localPlayer = self;
-			movementManager = NewObject<USuperPioneerMovementManager>(self, movementManagerName);
-			movementManager->Setup(self, PlayerInputComponent);
+			SPMovementComponent = NewObject<USuperPioneerMovementComponent>(self, SPMovementComponentName);
+			SPMovementComponent->Setup(self, PlayerInputComponent);
+			SPMovementComponent->RegisterComponent();
 		}
 	});
 
@@ -34,14 +35,14 @@ void FSuperPioneerModule::RegisterHooks() {
 		this->SetPlayerSprintSpeed(self, this->defaultMaxSprintSpeed);
 	});*/
 	/*SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterPlayer::Tick, examplePlayerCharacter, [this](auto& scope, AFGCharacterPlayer* self, float deltaTime) {
-		if (self->IsLocallyControlled() && self == this->localPlayer && IsValid(movementManager)) {
-			movementManager->Tick(deltaTime);
+		if (self->IsLocallyControlled() && self == this->localPlayer && IsValid(SPMovementComponent)) {
+			SPMovementComponent->Tick(deltaTime);
 		}
 	});*/
 
 	SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterPlayer::Jump, examplePlayerCharacter, [this](auto& scope, AFGCharacterPlayer* self) {
-		if (self->IsLocallyControlled() && self == this->localPlayer && IsValid(movementManager)) {
-			if (movementManager->CheckAndConsumeJump()) {
+		if (self->IsLocallyControlled() && self == this->localPlayer && IsValid(SPMovementComponent)) {
+			if (SPMovementComponent->CheckAndConsumeJump()) {
 				UE_LOG(LogTemp, Warning, TEXT("[SP] JUMP PASSED"))
 				// Jump was primed, continue with jump
 			} else {

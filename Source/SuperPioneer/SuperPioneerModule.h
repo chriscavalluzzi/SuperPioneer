@@ -3,7 +3,7 @@
 #include "Modules/ModuleManager.h"
 #include "GameFramework/Character.h"
 #include "FGCharacterPlayer.h"
-#include "SuperPioneerMovementManager.h"
+#include "SuperPioneerMovementComponent.h"
 
 class FSuperPioneerModule : public FDefaultGameModuleImpl {
 public:
@@ -16,7 +16,7 @@ private:
 
 	void RegisterHooks();
 
-	USuperPioneerMovementManager* movementManager;
-	FName movementManagerName;
+	USuperPioneerMovementComponent* SPMovementComponent;
+	FName SPMovementComponentName;
 
 };

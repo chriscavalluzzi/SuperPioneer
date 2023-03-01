@@ -3,16 +3,16 @@
 #include "FGCharacterPlayer.h"
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
-#include "SuperPioneerMovementManager.generated.h"
+#include "SuperPioneerMovementComponent.generated.h"
 
 UCLASS()
-class SUPERPIONEER_API USuperPioneerMovementManager : public UActorComponent
+class SUPERPIONEER_API USuperPioneerMovementComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:
 
-	USuperPioneerMovementManager();
+	USuperPioneerMovementComponent();
 	void Setup(AFGCharacterPlayer* _localPlayer, UInputComponent* _inputComponent);
 	bool CheckAndConsumeJump();
 
