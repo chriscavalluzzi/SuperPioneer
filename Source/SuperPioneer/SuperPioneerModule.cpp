@@ -43,13 +43,16 @@ void FSuperPioneerModule::RegisterHooks() {
 	SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterPlayer::Jump, examplePlayerCharacter, [this](auto& scope, AFGCharacterPlayer* self) {
 		if (self->IsLocallyControlled() && self == this->localPlayer && IsValid(SPMovementComponent)) {
 			if (SPMovementComponent->CheckAndConsumeJump()) {
-				UE_LOG(LogTemp, Warning, TEXT("[SP] JUMP PASSED"))
 				// Jump was primed, continue with jump
 			} else {
-				UE_LOG(LogTemp, Warning, TEXT("[SP] JUMP CANCELLED"))
 				// Jump was not primed, cancel jump
 				scope.Cancel();
 			}
+		}
+	});
+	SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterBase::Landed, examplePlayerCharacter, [this](auto& scope, AFGCharacterBase* self, const FHitResult& Hit) {
+		if (self->IsLocallyControlled() && self == this->localPlayer && IsValid(SPMovementComponent)) {
+			SPMovementComponent->OnLanded();
 		}
 	});
 	SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterBase::CalculateFallDamage, examplePlayerCharacter, [](auto& scope, const AFGCharacterBase* self, float zSpeed) {

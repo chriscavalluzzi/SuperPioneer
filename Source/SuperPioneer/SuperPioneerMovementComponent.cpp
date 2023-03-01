@@ -16,6 +16,7 @@ void USuperPioneerMovementComponent::Setup(AFGCharacterPlayer* _localPlayer, UIn
 	defaultMaxSprintSpeed = GetPlayerMovementComponent()->mMaxSprintSpeed;
 	defaultJumpZVelocity = GetPlayerMovementComponent()->JumpZVelocity;
 	defaultAirControl = GetPlayerMovementComponent()->AirControl;
+	defaultGravityScale = GetPlayerMovementComponent()->GravityScale;
 	isSuperSprintPressed = false;
 	wasSprintingBeforeSuperSprint = false;
 	wasHoldingToSprintBeforeSuperSprint = false;
@@ -114,21 +115,30 @@ float USuperPioneerMovementComponent::CalculateCurrentSpeedPercentOfMax() {
 // Jumping
 
 void USuperPioneerMovementComponent::JumpPressed() {
-	UE_LOG(LogTemp, Warning, TEXT("[SP] Jump Pressed"))
 	isJumpPressed = true;
 	isJumpPrimed = false;
 	jumpHoldDuration = 0.0;
 }
 
 void USuperPioneerMovementComponent::JumpReleased() {
-	UE_LOG(LogTemp, Warning, TEXT("[SP] Jump Released"))
 	SetPlayerJumpZVelocity(CalculateJumpZVelocity());
 	SetPlayerAirControl(CalculateAirControl());
+	SetPlayerGravityScale(defaultGravityScale + (CalculateJumpMultipliers() - 1.0f) * gravityScalingMultiplier);
+	UE_LOG(LogTemp, Warning, TEXT("[SP] ############ Jump Modifications ############"))
+	UE_LOG(LogTemp, Warning, TEXT("[SP] Raw Multiplier:    %f"), CalculateJumpMultipliers())
+	UE_LOG(LogTemp, Warning, TEXT("[SP] New JumpZVelocity: %f"), GetPlayerMovementComponent()->JumpZVelocity)
+	UE_LOG(LogTemp, Warning, TEXT("[SP] New AirControl:    %f"), GetPlayerMovementComponent()->AirControl)
+	UE_LOG(LogTemp, Warning, TEXT("[SP] New GravityScale:  %f"), GetPlayerMovementComponent()->GravityScale)
+	UE_LOG(LogTemp, Warning, TEXT("[SP] ############################################"))
 	isJumpPressed = false;
 	isJumpPrimed = true;
 	jumpHoldDuration = 0.0;
-	UE_LOG(LogTemp, Warning, TEXT("[SP] Air Control: %f"), GetPlayerMovementComponent()->AirControl)
 	GetPlayerMovementComponent()->DoJump(false);
+}
+
+void USuperPioneerMovementComponent::OnLanded() {
+	SetPlayerAirControl(defaultAirControl);
+	SetPlayerGravityScale(defaultGravityScale);
 }
 
 void USuperPioneerMovementComponent::JumpTick(float deltaTime) {
@@ -147,9 +157,14 @@ bool USuperPioneerMovementComponent::CheckAndConsumeJump() {
 }
 
 float USuperPioneerMovementComponent::CalculateJumpZVelocity() {
+	float adjustedGravityScalingMultiplier = jumpMultiplierPerGravityScale * gravityScalingMultiplier;
+	return defaultJumpZVelocity * ((CalculateJumpMultipliers() - 1.0f) * adjustedGravityScalingMultiplier + 1.0f);
+}
+
+float USuperPioneerMovementComponent::CalculateJumpMultipliers() {
 	float speedMultiplier = lerp(1.0f, superJumpSpeedMultiplierMax, CalculateCurrentSpeedPercentOfMax());
 	float holdMultiplier = lerp(1.0f, superJumpHoldMultiplierMax, CalculateCurrentJumpHoldPercentOfMax());
-	return defaultJumpZVelocity * holdMultiplier * speedMultiplier;
+	return speedMultiplier * holdMultiplier;
 }
 
 float USuperPioneerMovementComponent::CalculateCurrentJumpHoldPercentOfMax() {
@@ -170,6 +185,10 @@ float USuperPioneerMovementComponent::CalculateAirControl() {
 
 void USuperPioneerMovementComponent::SetPlayerAirControl(float newAirControl) {
 	GetPlayerMovementComponent()->AirControl = newAirControl;
+}
+
+void USuperPioneerMovementComponent::SetPlayerGravityScale(float newGravityScale) {
+	GetPlayerMovementComponent()->GravityScale = newGravityScale;
 }
 
 float USuperPioneerMovementComponent::lerp(float a, float b, float t) {
