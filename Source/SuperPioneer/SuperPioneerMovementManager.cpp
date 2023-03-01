@@ -13,9 +13,10 @@ USuperPioneerMovementManager::USuperPioneerMovementManager() {
 void USuperPioneerMovementManager::Setup(AFGCharacterPlayer* _localPlayer, UInputComponent* _inputComponent) {
   UE_LOG(LogTemp,Warning,TEXT("[SP] Starting Manager Setup"))
   this->localPlayer = _localPlayer;
-  this->inputComponent = _inputComponent;
+  //this->inputComponent = _inputComponent;
 	defaultMaxSprintSpeed = GetPlayerMovementComponent()->mMaxSprintSpeed;
 	defaultJumpZVelocity = GetPlayerMovementComponent()->JumpZVelocity;
+	defaultAirControl = GetPlayerMovementComponent()->AirControl;
 	isSuperSprintPressed = false;
 	wasSprintingBeforeSuperSprint = false;
 	wasHoldingToSprintBeforeSuperSprint = false;
@@ -98,21 +99,44 @@ bool USuperPioneerMovementManager::GetIsPlayerSprinting() {
 	return GetPlayerMovementComponent()->GetIsSprinting();
 }
 
-// Jumping
-
-float USuperPioneerMovementManager::CalculateJumpZVelocity(AFGCharacterPlayer* player, float heldDuration) {
+float USuperPioneerMovementManager::CalculateCurrentSpeedPercentOfMax() {
 	float currentSpeed = GetPlayerCurrentSprintSpeed();
 	float minSpeed = defaultMaxSprintSpeed;
 	float maxSpeed = superSprintMaxSpeed;
-	float minJump = defaultJumpZVelocity * superJumpMinZVelocityMultiplier;
-	float maxJump = defaultJumpZVelocity * superJumpMaxZVelocityMultiplier * heldDuration;
-	return ((maxJump - minJump) / (maxSpeed - minSpeed)) * (currentSpeed - minSpeed) + minJump;
+	return (currentSpeed - minSpeed) / (maxSpeed - minSpeed);
 }
 
-void USuperPioneerMovementManager::SetPlayerJumpZVelocity(AFGCharacterPlayer* player, float newZVelocity) {
+// Jumping
+
+void USuperPioneerMovementManager::Jump() {
+	UE_LOG(LogTemp, Warning, TEXT("[SP] Jumping"))
+	SetPlayerJumpZVelocity(CalculateJumpZVelocity(1.0));
+	SetPlayerAirControl(CalculateAirControl());
+	UE_LOG(LogTemp, Warning, TEXT("[SP] JumpZVelocity: %f"),GetPlayerMovementComponent()->JumpZVelocity)
+	UE_LOG(LogTemp, Warning, TEXT("[SP] Air Control: %f"), GetPlayerMovementComponent()->AirControl)
+}
+
+float USuperPioneerMovementManager::CalculateJumpZVelocity(float heldDuration) {
+	float minJump = defaultJumpZVelocity * superJumpMinZVelocityMultiplier;
+	float maxJump = defaultJumpZVelocity * superJumpMaxZVelocityMultiplier * heldDuration;
+	UE_LOG(LogTemp, Warning, TEXT("[SP] Min: %f"), minJump)
+	UE_LOG(LogTemp, Warning, TEXT("[SP] Max: %f"), maxJump)
+	UE_LOG(LogTemp, Warning, TEXT("[SP] Percent: %f"), CalculateCurrentSpeedPercentOfMax())
+	return ((maxJump - minJump) * CalculateCurrentSpeedPercentOfMax()) + minJump;
+}
+
+void USuperPioneerMovementManager::SetPlayerJumpZVelocity(float newZVelocity) {
 	GetPlayerMovementComponent()->JumpZVelocity = newZVelocity;
 }
 
-float USuperPioneerMovementManager::GetPlayerJumpZVelocity(AFGCharacterPlayer* player) {
+float USuperPioneerMovementManager::GetPlayerJumpZVelocity() {
 	return GetPlayerMovementComponent()->JumpZVelocity;
+}
+
+float USuperPioneerMovementManager::CalculateAirControl() {
+	return (maxAirControl * CalculateCurrentSpeedPercentOfMax()) + defaultAirControl;
+}
+
+void USuperPioneerMovementManager::SetPlayerAirControl(float newAirControl) {
+	GetPlayerMovementComponent()->AirControl = newAirControl;
 }

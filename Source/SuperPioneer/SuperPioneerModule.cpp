@@ -40,8 +40,13 @@ void FSuperPioneerModule::RegisterHooks() {
 	});*/
 
 	SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterPlayer::Jump, examplePlayerCharacter, [this](auto& scope, AFGCharacterPlayer* self) {
-		UE_LOG(LogTemp, Warning, TEXT("[SP] Jumping"))
-			movementManager->SetPlayerJumpZVelocity(self, movementManager->CalculateJumpZVelocity(self,1.0));
+		UE_LOG(LogTemp, Warning, TEXT("Attempting Jump"))
+		UE_LOG(LogTemp, Warning, TEXT("[SP] self->IsLocallyControlled(): %s"), (self->IsLocallyControlled() ? TEXT("true") : TEXT("false")))
+		UE_LOG(LogTemp, Warning, TEXT("[SP] self->IsLocallyControlled(): %s"), (self->IsLocallyControlled() ? TEXT("true") : TEXT("false")))
+		if (self->IsLocallyControlled() && self == this->localPlayer && IsValid(movementManager)) {
+			UE_LOG(LogTemp, Warning, TEXT("Inside If"))
+			movementManager->Jump();
+		}
 	});
 	SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterBase::CalculateFallDamage, examplePlayerCharacter, [](auto& scope, const AFGCharacterBase* self, float zSpeed) {
 		// Remove fall damage

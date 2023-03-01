@@ -10,21 +10,25 @@ class SUPERPIONEER_API USuperPioneerMovementManager : public UActorComponent
 {
 	GENERATED_BODY()
 
-	AFGCharacterPlayer* localPlayer;
-	UInputComponent* inputComponent;
-
 public:
-	
-	// General
-	
-	USuperPioneerMovementManager();
 
+	USuperPioneerMovementManager();
 	void Setup(AFGCharacterPlayer* _localPlayer, UInputComponent* _inputComponent);
+	void Jump();
+
+protected:
+
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction);
+
+private:
+
+	// General
+
+	AFGCharacterPlayer* localPlayer;
+	const char* superSprintCommandName = "SuperPioneer.SuperSprint";
+
 	AFGCharacterPlayer* GetPlayer();
 	UFGCharacterMovementComponent* GetPlayerMovementComponent();
-
-	const char* superSprintCommandName = "SuperPioneer.SuperSprint";
 
 	// Sprinting
 
@@ -43,16 +47,21 @@ public:
 	void SetPlayerSprintSpeed(float newSprintSpeed);
 	float GetPlayerCurrentSprintSpeed();
 	bool GetIsPlayerSprinting();
+	float CalculateCurrentSpeedPercentOfMax();
 
 	// Jumping
 
 	const float superJumpMaxZVelocityMultiplier = 7.0f;
 	const float superJumpMinZVelocityMultiplier = 3.0f;
+	const float maxAirControl = 1.0f;
 
 	float defaultJumpZVelocity;
+	float defaultAirControl;
 
-	float CalculateJumpZVelocity(AFGCharacterPlayer* player, float heldDuration);
-	void SetPlayerJumpZVelocity(AFGCharacterPlayer* player, float newZVelocity);
-	float GetPlayerJumpZVelocity(AFGCharacterPlayer* player);
+	float CalculateJumpZVelocity(float heldDuration);
+	void SetPlayerJumpZVelocity(float newZVelocity);
+	float GetPlayerJumpZVelocity();
+	float CalculateAirControl();
+	void SetPlayerAirControl(float newAirControl);
 
 };
