@@ -20,8 +20,10 @@ void USuperPioneerMovementComponent::Setup(AFGCharacterPlayer* _localPlayer, UIn
 	isSuperSprintPressed = false;
 	wasSprintingBeforeSuperSprint = false;
 	wasHoldingToSprintBeforeSuperSprint = false;
+	eligibleForSprintResume = false;
 	isJumpPressed = false;
 	isJumpPrimed = false;
+	isFalling = false;
 	jumpHoldDuration = 0.0;
 	sprintDuration = 0.0;
   _inputComponent->BindAction(superSprintCommandName, EInputEvent::IE_Pressed, this, &USuperPioneerMovementComponent::SuperSprintPressed);
@@ -55,13 +57,13 @@ UFGCharacterMovementComponent* USuperPioneerMovementComponent::GetPlayerMovement
 void USuperPioneerMovementComponent::SuperSprintPressed() {
 	//UE_LOG(LogTemp, Warning, TEXT("[SP] Super Sprint Pressed"))
 	isSuperSprintPressed = true;
-	sprintDuration = 0.0;
-	SetPlayerSprintSpeed(defaultMaxSprintSpeed);
+	if (eligibleForSprintResume) {
+		return;
+	}
 	if (GetIsPlayerSprinting()) {
 		wasSprintingBeforeSuperSprint = true;
 		wasHoldingToSprintBeforeSuperSprint = GetPlayerMovementComponent()->mHoldToSprint;
-	}
-	else {
+	} else {
 		GetPlayer()->SprintPressed();
 		wasSprintingBeforeSuperSprint = false;
 		wasHoldingToSprintBeforeSuperSprint = GetPlayerMovementComponent()->mHoldToSprint;
@@ -72,13 +74,16 @@ void USuperPioneerMovementComponent::SuperSprintPressed() {
 void USuperPioneerMovementComponent::SuperSprintReleased() {
 	//UE_LOG(LogTemp, Warning, TEXT("[SP] Super Sprint Released"))
 	isSuperSprintPressed = false;
-	SetPlayerSprintSpeed(defaultMaxSprintSpeed);
-	if (wasHoldingToSprintBeforeSuperSprint) {
-		GetPlayer()->SprintReleased();
+	if (!GetPlayerMovementComponent()->IsFalling()) {
+		ResetSprintToDefaults();
+	}
+}
+
+void USuperPioneerMovementComponent::OnFalling() {
+	if (isSuperSprintPressed) {
+		eligibleForSprintResume = true;
 	} else {
-		if (wasSprintingBeforeSuperSprint) {
-			GetPlayer()->SprintPressed();
-		}
+		eligibleForSprintResume = false;
 	}
 }
 
@@ -86,6 +91,23 @@ void USuperPioneerMovementComponent::SprintTick(float deltaTime) {
 	if (GetIsPlayerSprinting() && isSuperSprintPressed) {
 		sprintDuration += deltaTime;
 		SetPlayerSprintSpeed(CalculateSprintSpeed(sprintDuration));
+	}
+	if (!isFalling && GetPlayerMovementComponent()->IsFalling()) {
+		isFalling = true;
+		OnFalling();
+	}
+}
+
+void USuperPioneerMovementComponent::ResetSprintToDefaults() {
+	SetPlayerSprintSpeed(defaultMaxSprintSpeed);
+	sprintDuration = 0.0;
+	if (wasHoldingToSprintBeforeSuperSprint) {
+		GetPlayer()->SprintReleased();
+	}
+	else {
+		if (wasSprintingBeforeSuperSprint) {
+			GetPlayer()->SprintPressed();
+		}
 	}
 }
 
@@ -137,8 +159,16 @@ void USuperPioneerMovementComponent::JumpReleased() {
 }
 
 void USuperPioneerMovementComponent::OnLanded() {
+	SetPlayerJumpZVelocity(defaultJumpZVelocity);
 	SetPlayerAirControl(defaultAirControl);
 	SetPlayerGravityScale(defaultGravityScale);
+	if (eligibleForSprintResume && isSuperSprintPressed) {
+		//GetPlayer()->SprintPressed();
+	} else {
+		ResetSprintToDefaults();
+	}
+	eligibleForSprintResume = false;
+	isFalling = false;
 }
 
 void USuperPioneerMovementComponent::JumpTick(float deltaTime) {

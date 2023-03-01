@@ -16,6 +16,7 @@ public:
 	void Setup(AFGCharacterPlayer* _localPlayer, UInputComponent* _inputComponent);
 	bool CheckAndConsumeJump();
 	void OnLanded();
+	void OnFalling();
 
 protected:
 
@@ -38,12 +39,14 @@ private:
 	bool isSuperSprintPressed;
 	bool wasSprintingBeforeSuperSprint;
 	bool wasHoldingToSprintBeforeSuperSprint;
+	bool eligibleForSprintResume;
 	float sprintDuration;
 	float defaultMaxSprintSpeed;
 
 	void SuperSprintPressed();
 	void SuperSprintReleased();
 	void SprintTick(float deltaTime);
+	void ResetSprintToDefaults();
 	float CalculateSprintSpeed(float duration);
 	void SetPlayerSprintSpeed(float newSprintSpeed);
 	float GetPlayerCurrentSprintSpeed();
@@ -65,6 +68,7 @@ private:
 	float defaultGravityScale;
 	bool isJumpPressed;
 	bool isJumpPrimed;
+	bool isFalling;
 	float jumpHoldDuration;
 
 	void JumpPressed();
