@@ -1,5 +1,6 @@
 #include "SuperPioneerMovementManager.h"
 #include <algorithm>
+#include <cmath>
 #include <string>
 #include "FGCharacterPlayer.h"
 #include "FGCharacterMovementComponent.h"
@@ -13,20 +14,25 @@ USuperPioneerMovementManager::USuperPioneerMovementManager() {
 void USuperPioneerMovementManager::Setup(AFGCharacterPlayer* _localPlayer, UInputComponent* _inputComponent) {
   UE_LOG(LogTemp,Warning,TEXT("[SP] Starting Manager Setup"))
   this->localPlayer = _localPlayer;
-  //this->inputComponent = _inputComponent;
 	defaultMaxSprintSpeed = GetPlayerMovementComponent()->mMaxSprintSpeed;
 	defaultJumpZVelocity = GetPlayerMovementComponent()->JumpZVelocity;
 	defaultAirControl = GetPlayerMovementComponent()->AirControl;
 	isSuperSprintPressed = false;
 	wasSprintingBeforeSuperSprint = false;
 	wasHoldingToSprintBeforeSuperSprint = false;
+	isJumpPressed = false;
+	isJumpPrimed = false;
+	jumpHoldDuration = 0.0;
 	sprintDuration = 0.0;
   _inputComponent->BindAction(superSprintCommandName, EInputEvent::IE_Pressed, this, &USuperPioneerMovementManager::SuperSprintPressed);
 	_inputComponent->BindAction(superSprintCommandName, EInputEvent::IE_Released, this, &USuperPioneerMovementManager::SuperSprintReleased);
+	_inputComponent->BindAction("Jump_Drift", EInputEvent::IE_Pressed, this, &USuperPioneerMovementManager::JumpPressed);
+	_inputComponent->BindAction("Jump_Drift", EInputEvent::IE_Released, this, &USuperPioneerMovementManager::JumpReleased);
 }
 
 void USuperPioneerMovementManager::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) {
 	SprintTick(DeltaTime);
+	JumpTick(DeltaTime);
 }
 
 AFGCharacterPlayer* USuperPioneerMovementManager::GetPlayer() {
@@ -47,7 +53,7 @@ UFGCharacterMovementComponent* USuperPioneerMovementManager::GetPlayerMovementCo
 // Sprinting
 
 void USuperPioneerMovementManager::SuperSprintPressed() {
-	UE_LOG(LogTemp, Warning, TEXT("[SP] Super Sprint Pressed"))
+	//UE_LOG(LogTemp, Warning, TEXT("[SP] Super Sprint Pressed"))
 	isSuperSprintPressed = true;
 	sprintDuration = 0.0;
 	SetPlayerSprintSpeed(defaultMaxSprintSpeed);
@@ -60,11 +66,11 @@ void USuperPioneerMovementManager::SuperSprintPressed() {
 		wasSprintingBeforeSuperSprint = false;
 		wasHoldingToSprintBeforeSuperSprint = GetPlayerMovementComponent()->mHoldToSprint;
 	}
-	UE_LOG(LogTemp, Warning, TEXT("[SP] HoldToSprint: %s"), (wasHoldingToSprintBeforeSuperSprint ? TEXT("true") : TEXT("false")))
+	//UE_LOG(LogTemp, Warning, TEXT("[SP] HoldToSprint: %s"), (wasHoldingToSprintBeforeSuperSprint ? TEXT("true") : TEXT("false")))
 }
 
 void USuperPioneerMovementManager::SuperSprintReleased() {
-	UE_LOG(LogTemp, Warning, TEXT("[SP] Super Sprint Released"))
+	//UE_LOG(LogTemp, Warning, TEXT("[SP] Super Sprint Released"))
 	isSuperSprintPressed = false;
 	SetPlayerSprintSpeed(defaultMaxSprintSpeed);
 	if (wasHoldingToSprintBeforeSuperSprint) {
@@ -103,26 +109,52 @@ float USuperPioneerMovementManager::CalculateCurrentSpeedPercentOfMax() {
 	float currentSpeed = GetPlayerCurrentSprintSpeed();
 	float minSpeed = defaultMaxSprintSpeed;
 	float maxSpeed = superSprintMaxSpeed;
-	return (currentSpeed - minSpeed) / (maxSpeed - minSpeed);
+	return std::clamp((currentSpeed - minSpeed) / (maxSpeed - minSpeed), 0.0f, 1.0f);
 }
 
 // Jumping
 
-void USuperPioneerMovementManager::Jump() {
-	UE_LOG(LogTemp, Warning, TEXT("[SP] Jumping"))
-	SetPlayerJumpZVelocity(CalculateJumpZVelocity(1.0));
-	SetPlayerAirControl(CalculateAirControl());
-	UE_LOG(LogTemp, Warning, TEXT("[SP] JumpZVelocity: %f"),GetPlayerMovementComponent()->JumpZVelocity)
-	UE_LOG(LogTemp, Warning, TEXT("[SP] Air Control: %f"), GetPlayerMovementComponent()->AirControl)
+void USuperPioneerMovementManager::JumpPressed() {
+	UE_LOG(LogTemp, Warning, TEXT("[SP] Jump Pressed"))
+	isJumpPressed = true;
+	isJumpPrimed = false;
+	jumpHoldDuration = 0.0;
 }
 
-float USuperPioneerMovementManager::CalculateJumpZVelocity(float heldDuration) {
-	float minJump = defaultJumpZVelocity * superJumpMinZVelocityMultiplier;
-	float maxJump = defaultJumpZVelocity * superJumpMaxZVelocityMultiplier * heldDuration;
-	UE_LOG(LogTemp, Warning, TEXT("[SP] Min: %f"), minJump)
-	UE_LOG(LogTemp, Warning, TEXT("[SP] Max: %f"), maxJump)
-	UE_LOG(LogTemp, Warning, TEXT("[SP] Percent: %f"), CalculateCurrentSpeedPercentOfMax())
-	return ((maxJump - minJump) * CalculateCurrentSpeedPercentOfMax()) + minJump;
+void USuperPioneerMovementManager::JumpReleased() {
+	UE_LOG(LogTemp, Warning, TEXT("[SP] Jump Released"))
+	SetPlayerJumpZVelocity(CalculateJumpZVelocity());
+	SetPlayerAirControl(CalculateAirControl());
+	isJumpPressed = false;
+	isJumpPrimed = true;
+	jumpHoldDuration = 0.0;
+	UE_LOG(LogTemp, Warning, TEXT("[SP] Air Control: %f"), GetPlayerMovementComponent()->AirControl)
+	GetPlayerMovementComponent()->DoJump(false);
+}
+
+void USuperPioneerMovementManager::JumpTick(float deltaTime) {
+	if (isJumpPressed) {
+		jumpHoldDuration += deltaTime;
+	}
+}
+
+bool USuperPioneerMovementManager::CheckAndConsumeJump() {
+	if (isJumpPrimed) {
+		isJumpPrimed = false;
+		return true;
+	} else {
+		return false;
+	}
+}
+
+float USuperPioneerMovementManager::CalculateJumpZVelocity() {
+	float speedMultiplier = lerp(1.0f, superJumpSpeedMultiplierMax, CalculateCurrentSpeedPercentOfMax());
+	float holdMultiplier = lerp(1.0f, superJumpHoldMultiplierMax, CalculateCurrentJumpHoldPercentOfMax());
+	return defaultJumpZVelocity * holdMultiplier * speedMultiplier;
+}
+
+float USuperPioneerMovementManager::CalculateCurrentJumpHoldPercentOfMax() {
+	return std::clamp((jumpHoldDuration - superJumpHoldTimeMin) / (superJumpHoldTimeMax - superJumpHoldTimeMin), 0.0f, 1.0f);
 }
 
 void USuperPioneerMovementManager::SetPlayerJumpZVelocity(float newZVelocity) {
@@ -134,9 +166,13 @@ float USuperPioneerMovementManager::GetPlayerJumpZVelocity() {
 }
 
 float USuperPioneerMovementManager::CalculateAirControl() {
-	return (maxAirControl * CalculateCurrentSpeedPercentOfMax()) + defaultAirControl;
+	return lerp(defaultAirControl, maxAirControl, CalculateCurrentSpeedPercentOfMax());
 }
 
 void USuperPioneerMovementManager::SetPlayerAirControl(float newAirControl) {
 	GetPlayerMovementComponent()->AirControl = newAirControl;
+}
+
+float USuperPioneerMovementManager::lerp(float a, float b, float t) {
+	return a * (1.0 - t) + (b * t);
 }

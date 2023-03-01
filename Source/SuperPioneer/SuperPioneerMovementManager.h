@@ -14,7 +14,7 @@ public:
 
 	USuperPioneerMovementManager();
 	void Setup(AFGCharacterPlayer* _localPlayer, UInputComponent* _inputComponent);
-	void Jump();
+	bool CheckAndConsumeJump();
 
 protected:
 
@@ -51,17 +51,28 @@ private:
 
 	// Jumping
 
-	const float superJumpMaxZVelocityMultiplier = 7.0f;
-	const float superJumpMinZVelocityMultiplier = 3.0f;
-	const float maxAirControl = 1.0f;
+	const float superJumpSpeedMultiplierMax = 2.0f;
+	const float superJumpHoldMultiplierMax = 5.0f;
+	const float superJumpHoldTimeMin = 0.1f;
+	const float superJumpHoldTimeMax = 1.5f;
+	const float maxAirControl = 0.6f;
 
 	float defaultJumpZVelocity;
 	float defaultAirControl;
+	bool isJumpPressed;
+	bool isJumpPrimed;
+	float jumpHoldDuration;
 
-	float CalculateJumpZVelocity(float heldDuration);
+	void JumpPressed();
+	void JumpReleased();
+	void JumpTick(float deltaTime);
+	float CalculateJumpZVelocity();
+	float CalculateCurrentJumpHoldPercentOfMax();
 	void SetPlayerJumpZVelocity(float newZVelocity);
 	float GetPlayerJumpZVelocity();
 	float CalculateAirControl();
 	void SetPlayerAirControl(float newAirControl);
 
+	// Utilities
+	static float lerp(float a, float b, float t);
 };
