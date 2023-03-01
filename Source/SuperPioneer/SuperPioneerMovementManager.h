@@ -6,7 +6,7 @@
 #include "SuperPioneerMovementManager.generated.h"
 
 UCLASS()
-class SUPERPIONEER_API USuperPioneerMovementManager : public UObject
+class SUPERPIONEER_API USuperPioneerMovementManager : public UActorComponent
 {
 	GENERATED_BODY()
 
@@ -20,14 +20,19 @@ public:
 	USuperPioneerMovementManager();
 
 	void Setup(AFGCharacterPlayer* _localPlayer, UInputComponent* _inputComponent);
-	void Tick(float deltaTime);
-	UFGCharacterMovementComponent* USuperPioneerMovementManager::GetPlayerMovementComponent();
+	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction);
+	AFGCharacterPlayer* GetPlayer();
+	UFGCharacterMovementComponent* GetPlayerMovementComponent();
+
+	const char* superSprintCommandName = "SuperPioneer.SuperSprint";
 
 	// Sprinting
 
 	const float superSprintMaxSpeed = 10000.0f;
 
 	bool isSuperSprintPressed;
+	bool wasSprintingBeforeSuperSprint;
+	bool wasHoldingToSprintBeforeSuperSprint;
 	float sprintDuration;
 	float defaultMaxSprintSpeed;
 

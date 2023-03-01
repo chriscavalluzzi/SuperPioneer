@@ -33,11 +33,11 @@ void FSuperPioneerModule::RegisterHooks() {
 		UE_LOG(LogTemp, Warning, TEXT("[SP] Stopping Sprinting"))
 		this->SetPlayerSprintSpeed(self, this->defaultMaxSprintSpeed);
 	});*/
-	SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterPlayer::Tick, examplePlayerCharacter, [this](auto& scope, AFGCharacterPlayer* self, float deltaTime) {
-		if (IsValid(movementManager)) {
+	/*SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterPlayer::Tick, examplePlayerCharacter, [this](auto& scope, AFGCharacterPlayer* self, float deltaTime) {
+		if (self->IsLocallyControlled() && self == this->localPlayer && IsValid(movementManager)) {
 			movementManager->Tick(deltaTime);
 		}
-	});
+	});*/
 
 	SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterPlayer::Jump, examplePlayerCharacter, [this](auto& scope, AFGCharacterPlayer* self) {
 		UE_LOG(LogTemp, Warning, TEXT("[SP] Jumping"))
