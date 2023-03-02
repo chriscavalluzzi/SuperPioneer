@@ -46,7 +46,9 @@ void FSuperPioneerModule::RegisterHooks() {
 				// Jump was primed, continue with jump
 			} else {
 				// Jump was not primed, cancel jump
-				scope.Cancel();
+				if (!self->GetMovementComponent()->IsSwimming()) {
+					scope.Cancel();
+				}
 			}
 		}
 	});
