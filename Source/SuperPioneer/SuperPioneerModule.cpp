@@ -10,8 +10,17 @@ void FSuperPioneerModule::StartupModule() {
 	#endif
 }
 
+
+
 void FSuperPioneerModule::RegisterHooks() {
 	AFGCharacterPlayer* examplePlayerCharacter = GetMutableDefault<AFGCharacterPlayer>();
+
+	SUBSCRIBE_METHOD_AFTER(UConfigManager::MarkConfigurationDirty, [this](UConfigManager* self, const FConfigId& ConfigId) {
+		if (ConfigId == FConfigId{ "SuperPioneer", "" } && IsValid(SPMovementComponent)) {
+			UE_LOG(LogTemp, Warning, TEXT("[SP] Config marked dirty, reloading...."))
+			SPMovementComponent->ReloadConfig();
+		}
+	})
 
 	SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterPlayer::SetupPlayerInputComponent, examplePlayerCharacter, [this](auto& scope, AFGCharacterPlayer* self, UInputComponent* PlayerInputComponent) {
 		if (self->IsLocallyControlled() && self != this->localPlayer) {

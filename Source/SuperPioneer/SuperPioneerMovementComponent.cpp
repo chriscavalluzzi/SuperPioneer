@@ -8,15 +8,6 @@
 USuperPioneerMovementComponent::USuperPioneerMovementComponent() {
   UE_LOG(LogTemp, Warning, TEXT("[SP] Sprint Manager Construction"))
 	PrimaryComponentTick.bCanEverTick = true;
-};
-
-void USuperPioneerMovementComponent::Setup(AFGCharacterPlayer* _localPlayer, UInputComponent* _inputComponent) {
-  UE_LOG(LogTemp,Warning,TEXT("[SP] Starting Manager Setup"))
-  this->localPlayer = _localPlayer;
-	defaultMaxSprintSpeed = GetPlayerMovementComponent()->mMaxSprintSpeed;
-	defaultJumpZVelocity = GetPlayerMovementComponent()->JumpZVelocity;
-	defaultAirControl = GetPlayerMovementComponent()->AirControl;
-	defaultGravityScale = GetPlayerMovementComponent()->GravityScale;
 	isSuperSprintPressed = false;
 	isNormalSprintPressed = false;
 	wasSprintingBeforeSuperSprint = false;
@@ -27,12 +18,30 @@ void USuperPioneerMovementComponent::Setup(AFGCharacterPlayer* _localPlayer, UIn
 	isFalling = false;
 	jumpHoldDuration = 0.0;
 	sprintDuration = 0.0;
+};
+
+void USuperPioneerMovementComponent::Setup(AFGCharacterPlayer* _localPlayer, UInputComponent* _inputComponent) {
+  UE_LOG(LogTemp,Warning,TEXT("[SP] Starting Manager Setup"))
+  this->localPlayer = _localPlayer;
+
+	ReloadConfig();
+
+	defaultMaxSprintSpeed = GetPlayerMovementComponent()->mMaxSprintSpeed;
+	defaultJumpZVelocity = GetPlayerMovementComponent()->JumpZVelocity;
+	defaultAirControl = GetPlayerMovementComponent()->AirControl;
+	defaultGravityScale = GetPlayerMovementComponent()->GravityScale;
+
   _inputComponent->BindAction(superSprintCommandName, EInputEvent::IE_Pressed, this, &USuperPioneerMovementComponent::SuperSprintPressed);
 	_inputComponent->BindAction(superSprintCommandName, EInputEvent::IE_Released, this, &USuperPioneerMovementComponent::SuperSprintReleased);
 	_inputComponent->BindAction("Jump_Drift", EInputEvent::IE_Pressed, this, &USuperPioneerMovementComponent::JumpPressed);
 	_inputComponent->BindAction("Jump_Drift", EInputEvent::IE_Released, this, &USuperPioneerMovementComponent::JumpReleased);
 	_inputComponent->BindAction("ToggleSprint", EInputEvent::IE_Pressed, this, &USuperPioneerMovementComponent::NormalSprintPressed);
 	_inputComponent->BindAction("ToggleSprint", EInputEvent::IE_Released, this, &USuperPioneerMovementComponent::NormalSprintReleased);
+}
+
+void USuperPioneerMovementComponent::ReloadConfig() {
+	FSuperPioneer_ConfigStruct SPConfig = FSuperPioneer_ConfigStruct::GetActiveConfig();
+	superSprintMaxSpeed = SPConfig.superSprint.superSprintMaxSpeed;
 }
 
 void USuperPioneerMovementComponent::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) {

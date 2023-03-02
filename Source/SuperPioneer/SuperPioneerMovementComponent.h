@@ -1,6 +1,7 @@
 #pragma once
 
 #include "FGCharacterPlayer.h"
+#include "SuperPioneer_ConfigStruct.h"
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
 #include "SuperPioneerMovementComponent.generated.h"
@@ -14,6 +15,7 @@ public:
 
 	USuperPioneerMovementComponent();
 	void Setup(AFGCharacterPlayer* _localPlayer, UInputComponent* _inputComponent);
+	void ReloadConfig();
 	bool CheckAndConsumeJump();
 	void OnLanded();
 	void OnFalling();
@@ -34,7 +36,7 @@ private:
 
 	// Sprinting
 
-	const float superSprintMaxSpeed = 10000.0f;
+	float superSprintMaxSpeed;// = 10000.0f;
 
 	bool isSuperSprintPressed;
 	bool isNormalSprintPressed;
