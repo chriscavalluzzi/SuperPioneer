@@ -121,7 +121,7 @@ void USuperPioneerMovementComponent::ResetSprintToDefaults() {
 		}
 	} else {
 		// Toggle sprint enabled
-		if (!wasSprintingBeforeSuperSprint) {
+		if (!wasSprintingBeforeSuperSprint && GetIsPlayerSprinting()) {
 			GetPlayer()->SprintPressed();
 		}
 	}
