@@ -37,6 +37,7 @@ private:
 	const float superSprintMaxSpeed = 10000.0f;
 
 	bool isSuperSprintPressed;
+	bool isNormalSprintPressed;
 	bool wasSprintingBeforeSuperSprint;
 	bool wasHoldingToSprintBeforeSuperSprint;
 	bool eligibleForSprintResume;
@@ -45,6 +46,8 @@ private:
 
 	void SuperSprintPressed();
 	void SuperSprintReleased();
+	void NormalSprintPressed();
+	void NormalSprintReleased();
 	void SprintTick(float deltaTime);
 	void ResetSprintToDefaults();
 	float CalculateSprintSpeed(float duration);

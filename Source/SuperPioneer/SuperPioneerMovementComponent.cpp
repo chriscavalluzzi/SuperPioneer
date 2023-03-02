@@ -18,6 +18,7 @@ void USuperPioneerMovementComponent::Setup(AFGCharacterPlayer* _localPlayer, UIn
 	defaultAirControl = GetPlayerMovementComponent()->AirControl;
 	defaultGravityScale = GetPlayerMovementComponent()->GravityScale;
 	isSuperSprintPressed = false;
+	isNormalSprintPressed = false;
 	wasSprintingBeforeSuperSprint = false;
 	wasHoldingToSprintBeforeSuperSprint = false;
 	eligibleForSprintResume = false;
@@ -30,6 +31,8 @@ void USuperPioneerMovementComponent::Setup(AFGCharacterPlayer* _localPlayer, UIn
 	_inputComponent->BindAction(superSprintCommandName, EInputEvent::IE_Released, this, &USuperPioneerMovementComponent::SuperSprintReleased);
 	_inputComponent->BindAction("Jump_Drift", EInputEvent::IE_Pressed, this, &USuperPioneerMovementComponent::JumpPressed);
 	_inputComponent->BindAction("Jump_Drift", EInputEvent::IE_Released, this, &USuperPioneerMovementComponent::JumpReleased);
+	_inputComponent->BindAction("ToggleSprint", EInputEvent::IE_Pressed, this, &USuperPioneerMovementComponent::NormalSprintPressed);
+	_inputComponent->BindAction("ToggleSprint", EInputEvent::IE_Released, this, &USuperPioneerMovementComponent::NormalSprintReleased);
 }
 
 void USuperPioneerMovementComponent::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) {
@@ -79,6 +82,14 @@ void USuperPioneerMovementComponent::SuperSprintReleased() {
 	}
 }
 
+void USuperPioneerMovementComponent::NormalSprintPressed() {
+	isNormalSprintPressed = true;
+}
+
+void USuperPioneerMovementComponent::NormalSprintReleased() {
+	isNormalSprintPressed = false;
+}
+
 void USuperPioneerMovementComponent::OnFalling() {
 	if (isSuperSprintPressed) {
 		eligibleForSprintResume = true;
@@ -101,11 +112,16 @@ void USuperPioneerMovementComponent::SprintTick(float deltaTime) {
 void USuperPioneerMovementComponent::ResetSprintToDefaults() {
 	SetPlayerSprintSpeed(defaultMaxSprintSpeed);
 	sprintDuration = 0.0;
-	if (wasHoldingToSprintBeforeSuperSprint) {
-		GetPlayer()->SprintReleased();
-	}
-	else {
-		if (wasSprintingBeforeSuperSprint) {
+	if (GetPlayerMovementComponent()->mHoldToSprint) {
+		// Hold to sprint enabled
+		if (isNormalSprintPressed) {
+			GetPlayer()->SprintPressed();
+		} else {
+			GetPlayer()->SprintReleased();
+		}
+	} else {
+		// Toggle sprint enabled
+		if (!wasSprintingBeforeSuperSprint) {
 			GetPlayer()->SprintPressed();
 		}
 	}
