@@ -41,7 +41,14 @@ void USuperPioneerMovementComponent::Setup(AFGCharacterPlayer* _localPlayer, UIn
 
 void USuperPioneerMovementComponent::ReloadConfig() {
 	FSuperPioneer_ConfigStruct SPConfig = FSuperPioneer_ConfigStruct::GetActiveConfig();
-	superSprintMaxSpeed = SPConfig.superSprint.superSprintMaxSpeed;
+	config_superSprintMaxSpeed = SPConfig.superSprint.superSprintMaxSpeed;
+	config_superJumpSpeedMultiplierMax = SPConfig.superJump.superJumpSpeedMultiplierMax;
+	config_superJumpHoldMultiplierMax = SPConfig.superJump.superJumpHoldMultiplierMax;
+	config_superJumpHoldTimeMin = SPConfig.superJump.superJumpHoldTimeMin;
+	config_superJumpHoldTimeMax = std::max(SPConfig.superJump.superJumpHoldTimeMax,config_superJumpHoldTimeMin);
+	config_maxAirControl = SPConfig.superJump.maxAirControl;
+	config_gravityScalingMultiplier = SPConfig.superJump.gravityScalingMultiplier;
+	config_jumpMultiplierPerGravityScale = SPConfig.superJump.jumpMultiplierPerGravityScale;
 }
 
 void USuperPioneerMovementComponent::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) {
@@ -137,7 +144,7 @@ void USuperPioneerMovementComponent::ResetSprintToDefaults() {
 }
 
 float USuperPioneerMovementComponent::CalculateSprintSpeed(float duration) {
-	return std::min(float((1 + (2.0 * pow(duration, 2))) * defaultMaxSprintSpeed), superSprintMaxSpeed);
+	return std::min(float((1 + (2.0 * pow(duration, 2))) * defaultMaxSprintSpeed), config_superSprintMaxSpeed);
 }
 
 void USuperPioneerMovementComponent::SetPlayerSprintSpeed(float newSprintSpeed) {
@@ -155,8 +162,8 @@ bool USuperPioneerMovementComponent::GetIsPlayerSprinting() {
 float USuperPioneerMovementComponent::CalculateCurrentSpeedPercentOfMax() {
 	float currentSpeed = GetPlayerCurrentSprintSpeed();
 	float minSpeed = defaultMaxSprintSpeed;
-	float maxSpeed = superSprintMaxSpeed;
-	return std::clamp((currentSpeed - minSpeed) / (maxSpeed - minSpeed), 0.0f, 1.0f);
+	float maxSpeed = config_superSprintMaxSpeed;
+	return std::clamp((currentSpeed - minSpeed) / std::max((maxSpeed - minSpeed),0.1f), 0.0f, 1.0f);
 }
 
 // Jumping
@@ -170,7 +177,7 @@ void USuperPioneerMovementComponent::JumpPressed() {
 void USuperPioneerMovementComponent::JumpReleased() {
 	SetPlayerJumpZVelocity(CalculateJumpZVelocity());
 	SetPlayerAirControl(CalculateAirControl());
-	SetPlayerGravityScale(defaultGravityScale + (CalculateJumpMultipliers() - 1.0f) * gravityScalingMultiplier);
+	SetPlayerGravityScale(defaultGravityScale + (CalculateJumpMultipliers() - 1.0f) * config_gravityScalingMultiplier);
 	UE_LOG(LogTemp, Warning, TEXT("[SP] ############ Jump Modifications ############"))
 	UE_LOG(LogTemp, Warning, TEXT("[SP] Raw Multiplier:    %f"), CalculateJumpMultipliers())
 	UE_LOG(LogTemp, Warning, TEXT("[SP] New JumpZVelocity: %f"), GetPlayerMovementComponent()->JumpZVelocity)
@@ -212,18 +219,18 @@ bool USuperPioneerMovementComponent::CheckAndConsumeJump() {
 }
 
 float USuperPioneerMovementComponent::CalculateJumpZVelocity() {
-	float adjustedGravityScalingMultiplier = jumpMultiplierPerGravityScale * gravityScalingMultiplier;
-	return defaultJumpZVelocity * ((CalculateJumpMultipliers() - 1.0f) * adjustedGravityScalingMultiplier + 1.0f);
+	float adjustedgravityScalingMultiplier = config_jumpMultiplierPerGravityScale * config_gravityScalingMultiplier;
+	return defaultJumpZVelocity * ((CalculateJumpMultipliers() - 1.0f) * adjustedgravityScalingMultiplier + 1.0f);
 }
 
 float USuperPioneerMovementComponent::CalculateJumpMultipliers() {
-	float speedMultiplier = lerp(1.0f, superJumpSpeedMultiplierMax, CalculateCurrentSpeedPercentOfMax());
-	float holdMultiplier = lerp(1.0f, superJumpHoldMultiplierMax, CalculateCurrentJumpHoldPercentOfMax());
+	float speedMultiplier = lerp(1.0f, config_superJumpSpeedMultiplierMax, CalculateCurrentSpeedPercentOfMax());
+	float holdMultiplier = lerp(1.0f, config_superJumpHoldMultiplierMax, CalculateCurrentJumpHoldPercentOfMax());
 	return speedMultiplier * holdMultiplier;
 }
 
 float USuperPioneerMovementComponent::CalculateCurrentJumpHoldPercentOfMax() {
-	return std::clamp((jumpHoldDuration - superJumpHoldTimeMin) / (superJumpHoldTimeMax - superJumpHoldTimeMin), 0.0f, 1.0f);
+	return std::clamp((jumpHoldDuration - config_superJumpHoldTimeMin) / std::max(config_superJumpHoldTimeMax - config_superJumpHoldTimeMin,0.1f), 0.0f, 1.0f);
 }
 
 void USuperPioneerMovementComponent::SetPlayerJumpZVelocity(float newZVelocity) {
@@ -235,7 +242,7 @@ float USuperPioneerMovementComponent::GetPlayerJumpZVelocity() {
 }
 
 float USuperPioneerMovementComponent::CalculateAirControl() {
-	return lerp(defaultAirControl, maxAirControl, CalculateCurrentSpeedPercentOfMax());
+	return lerp(defaultAirControl, config_maxAirControl, CalculateCurrentSpeedPercentOfMax());
 }
 
 void USuperPioneerMovementComponent::SetPlayerAirControl(float newAirControl) {

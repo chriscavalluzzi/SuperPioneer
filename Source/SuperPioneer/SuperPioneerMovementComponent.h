@@ -36,7 +36,7 @@ private:
 
 	// Sprinting
 
-	float superSprintMaxSpeed;// = 10000.0f;
+	float config_superSprintMaxSpeed;
 
 	bool isSuperSprintPressed;
 	bool isNormalSprintPressed;
@@ -60,13 +60,13 @@ private:
 
 	// Jumping
 
-	const float superJumpSpeedMultiplierMax = 2.0f;
-	const float superJumpHoldMultiplierMax = 5.0f;
-	const float superJumpHoldTimeMin = 0.1f;
-	const float superJumpHoldTimeMax = 1.5f;
-	const float maxAirControl = 0.6f;
-	const float gravityScalingMultiplier = 0.5f;
-	const float jumpMultiplierPerGravityScale = 6.0f;
+	float config_superJumpSpeedMultiplierMax;
+	float config_superJumpHoldMultiplierMax;
+	float config_superJumpHoldTimeMin;
+	float config_superJumpHoldTimeMax;
+	float config_maxAirControl;
+	float config_gravityScalingMultiplier;
+	float config_jumpMultiplierPerGravityScale;
 
 	float defaultJumpZVelocity;
 	float defaultAirControl;
