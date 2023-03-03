@@ -12,11 +12,10 @@ public:
 
 private:
 
-	AFGCharacterPlayer* localPlayer;
+	FName SPMovementComponentName;
+	USuperPioneerMovementComponent* localSPMovementComponent;
 
 	void RegisterHooks();
-
-	USuperPioneerMovementComponent* SPMovementComponent;
-	FName SPMovementComponentName;
+	USuperPioneerMovementComponent* GetMovementComponent(AActor* actor);
 
 };

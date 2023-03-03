@@ -2,9 +2,12 @@
 
 #include "FGCharacterPlayer.h"
 #include "SuperPioneer_ConfigStruct.h"
+#include "SuperPioneerRemoteCallObject.h"
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
 #include "SuperPioneerMovementComponent.generated.h"
+
+using RCO = USuperPioneerRemoteCallObject;
 
 UCLASS()
 class SUPERPIONEER_API USuperPioneerMovementComponent : public UActorComponent
@@ -31,6 +34,7 @@ private:
 	AFGCharacterPlayer* localPlayer;
 	const char* superSprintCommandName = "SuperPioneer.SuperSprint";
 
+	RCO* GetRCO();
 	AFGCharacterPlayer* GetPlayer();
 	UFGCharacterMovementComponent* GetPlayerMovementComponent();
 

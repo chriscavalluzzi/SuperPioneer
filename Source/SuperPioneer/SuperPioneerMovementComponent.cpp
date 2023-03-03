@@ -2,6 +2,8 @@
 #include <algorithm>
 #include <cmath>
 #include <string>
+#include "SuperPioneerRemoteCallObject.h"
+#include "FGPlayerController.h"
 #include "FGCharacterPlayer.h"
 #include "FGCharacterMovementComponent.h"
 
@@ -54,6 +56,11 @@ void USuperPioneerMovementComponent::ReloadConfig() {
 void USuperPioneerMovementComponent::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) {
 	SprintTick(DeltaTime);
 	JumpTick(DeltaTime);
+}
+
+RCO* USuperPioneerMovementComponent::GetRCO() {
+	AFGPlayerController* controller = Cast<AFGPlayerController>(GetPlayer()->Controller);
+	return (RCO*)controller->GetRemoteCallObjectOfClass(RCO::StaticClass());
 }
 
 AFGCharacterPlayer* USuperPioneerMovementComponent::GetPlayer() {
@@ -149,6 +156,12 @@ float USuperPioneerMovementComponent::CalculateSprintSpeed(float duration) {
 
 void USuperPioneerMovementComponent::SetPlayerSprintSpeed(float newSprintSpeed) {
 	GetPlayerMovementComponent()->mMaxSprintSpeed = newSprintSpeed;
+
+	RCO* rco = GetRCO();
+	if (rco) {
+		UE_LOG(LogTemp, Warning, TEXT(">>>>>>>>>> SENDING: %f"), newSprintSpeed)
+		rco->ServerSetSprintSpeed(GetPlayer(), newSprintSpeed);
+	}
 }
 
 float USuperPioneerMovementComponent::GetPlayerCurrentSprintSpeed() {

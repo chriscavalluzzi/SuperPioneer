@@ -1,5 +1,7 @@
 #include "SuperPioneerModule.h"
 #include "Patching/NativeHookManager.h"
+#include "SuperPioneerRemoteCallObject.h"
+#include "FGGameMode.h"
 #include "FGCharacterPlayer.h"
 #include "FGCharacterMovementComponent.h"
 
@@ -10,27 +12,49 @@ void FSuperPioneerModule::StartupModule() {
 	#endif
 }
 
-
+USuperPioneerMovementComponent* FSuperPioneerModule::GetMovementComponent(AActor* actor) {
+	TArray<USuperPioneerMovementComponent*> components;
+	actor->GetComponents<USuperPioneerMovementComponent>(components);
+	for (int i = 0; i < components.Num(); i++) {
+		return components[i];
+	}
+	return nullptr;
+}
 
 void FSuperPioneerModule::RegisterHooks() {
+
+	AFGGameMode * exampleGameMode = GetMutableDefault<AFGGameMode>();
+
+	SUBSCRIBE_METHOD_VIRTUAL(AFGGameMode::PostLogin, exampleGameMode, [](auto& scope, AFGGameMode* gm, APlayerController* pc) {
+		UE_LOG(LogTemp, Warning, TEXT("[SP] >>>>>>>>>> POST LOGIN"))
+		if (gm->HasAuthority() && !gm->IsMainMenuGameMode()) {
+			UE_LOG(LogTemp, Warning, TEXT("[SP] >>>>>>>>>> REGISTERING RCO"))
+			gm->RegisterRemoteCallObjectClass(USuperPioneerRemoteCallObject::StaticClass());
+		}
+	});
+
 	AFGCharacterPlayer* examplePlayerCharacter = GetMutableDefault<AFGCharacterPlayer>();
 
 	SUBSCRIBE_METHOD_AFTER(UConfigManager::MarkConfigurationDirty, [this](UConfigManager* self, const FConfigId& ConfigId) {
-		if (ConfigId == FConfigId{ "SuperPioneer", "" } && IsValid(SPMovementComponent)) {
+		if (ConfigId == FConfigId{ "SuperPioneer", "" } && IsValid(localSPMovementComponent)) {
 			UE_LOG(LogTemp, Warning, TEXT("[SP] Config marked dirty, reloading...."))
-			SPMovementComponent->ReloadConfig();
+				localSPMovementComponent->ReloadConfig();
 		}
 	})
 
+
 	SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterPlayer::SetupPlayerInputComponent, examplePlayerCharacter, [this](auto& scope, AFGCharacterPlayer* self, UInputComponent* PlayerInputComponent) {
-		if (self->IsLocallyControlled() && self != this->localPlayer) {
-			// After the local player's InputComponent is ready, setup the movement component and tie it to the player
+		USuperPioneerMovementComponent* component = GetMovementComponent(self);
+		if (!component) {
+			// After each player's InputComponent is ready, setup the movement component and tie it to the player
 			// Called after every spawn
-			UE_LOG(LogTemp, Warning, TEXT("[SP] New local player detected, updating pointer"))
-			this->localPlayer = self;
-			SPMovementComponent = NewObject<USuperPioneerMovementComponent>(self, SPMovementComponentName);
-			SPMovementComponent->Setup(self, PlayerInputComponent);
-			SPMovementComponent->RegisterComponent();
+			UE_LOG(LogTemp, Warning, TEXT("[SP] New player object created, starting component setup"))
+			USuperPioneerMovementComponent* newComponent = NewObject<USuperPioneerMovementComponent>(self, SPMovementComponentName);
+			newComponent->Setup(self, PlayerInputComponent);
+			newComponent->RegisterComponent();
+			if (self->IsLocallyControlled()) {
+				localSPMovementComponent = newComponent;
+			}
 		}
 	});
 
@@ -50,8 +74,9 @@ void FSuperPioneerModule::RegisterHooks() {
 	});*/
 
 	SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterPlayer::Jump, examplePlayerCharacter, [this](auto& scope, AFGCharacterPlayer* self) {
-		if (self->IsLocallyControlled() && self == this->localPlayer && IsValid(SPMovementComponent)) {
-			if (SPMovementComponent->CheckAndConsumeJump()) {
+		USuperPioneerMovementComponent* component = GetMovementComponent(self);
+		if (component) {
+			if (component->CheckAndConsumeJump()) {
 				// Jump was primed, continue with jump
 			} else {
 				// Jump was not primed, cancel jump
@@ -62,8 +87,9 @@ void FSuperPioneerModule::RegisterHooks() {
 		}
 	});
 	SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterBase::Landed, examplePlayerCharacter, [this](auto& scope, AFGCharacterBase* self, const FHitResult& Hit) {
-		if (self->IsLocallyControlled() && self == this->localPlayer && IsValid(SPMovementComponent)) {
-			SPMovementComponent->OnLanded();
+		USuperPioneerMovementComponent* component = GetMovementComponent(self);
+		if (component) {
+			component->OnLanded();
 		}
 	});
 	SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterBase::CalculateFallDamage, examplePlayerCharacter, [](auto& scope, const AFGCharacterBase* self, float zSpeed) {
