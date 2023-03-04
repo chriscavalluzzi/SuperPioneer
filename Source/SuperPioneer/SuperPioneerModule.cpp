@@ -38,7 +38,7 @@ void FSuperPioneerModule::RegisterHooks() {
 	SUBSCRIBE_METHOD_AFTER(UConfigManager::MarkConfigurationDirty, [this](UConfigManager* self, const FConfigId& ConfigId) {
 		if (ConfigId == FConfigId{ "SuperPioneer", "" } && IsValid(localSPMovementComponent)) {
 			UE_LOG(LogTemp, Warning, TEXT("[SP] Config marked dirty, reloading...."))
-				localSPMovementComponent->ReloadConfig();
+			localSPMovementComponent->ReloadConfig();
 		}
 	})
 

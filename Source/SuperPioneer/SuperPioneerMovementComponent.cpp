@@ -205,9 +205,15 @@ void USuperPioneerMovementComponent::JumpPressed() {
 }
 
 void USuperPioneerMovementComponent::JumpReleased() {
-	SetPlayerJumpZVelocity(CalculateJumpZVelocity());
-	SetPlayerAirControl(CalculateAirControl());
-	SetPlayerGravityScale(defaultGravityScale + (CalculateJumpMultipliers() - 1.0f) * config_gravityScalingMultiplier);
+	if (GetPlayer()->CanJumpInternal_Implementation() && !GetPlayer()->IsMoveInputIgnored()) {
+		SetPlayerJumpZVelocity(CalculateJumpZVelocity());
+		SetPlayerAirControl(CalculateAirControl());
+		SetPlayerGravityScale(defaultGravityScale + (CalculateJumpMultipliers() - 1.0f) * config_gravityScalingMultiplier);
+		isJumpPrimed = true;
+		Invoke_Jump();
+	} else {
+		isJumpPrimed = false;
+	}
 	UE_LOG(LogTemp, Warning, TEXT("[SP] ############ Jump Modifications ############"))
 	UE_LOG(LogTemp, Warning, TEXT("[SP] Raw Multiplier:    %f"), CalculateJumpMultipliers())
 	UE_LOG(LogTemp, Warning, TEXT("[SP] New JumpZVelocity: %f"), GetPlayerMovementComponent()->JumpZVelocity)
@@ -215,9 +221,7 @@ void USuperPioneerMovementComponent::JumpReleased() {
 	UE_LOG(LogTemp, Warning, TEXT("[SP] New GravityScale:  %f"), GetPlayerMovementComponent()->GravityScale)
 	UE_LOG(LogTemp, Warning, TEXT("[SP] ############################################"))
 	isJumpPressed = false;
-	isJumpPrimed = true;
 	jumpHoldDuration = 0.0;
-	Invoke_Jump();
 }
 
 void USuperPioneerMovementComponent::Invoke_Jump() {
