@@ -54,6 +54,8 @@ private:
 	void SuperSprintReleased();
 	void NormalSprintPressed();
 	void NormalSprintReleased();
+	void Invoke_SprintPressed();
+	void Invoke_SprintReleased();
 	void SprintTick(float deltaTime);
 	void ResetSprintToDefaults();
 	float CalculateSprintSpeed(float duration);
@@ -82,6 +84,7 @@ private:
 
 	void JumpPressed();
 	void JumpReleased();
+	void Invoke_Jump();
 	void JumpTick(float deltaTime);
 	float CalculateJumpZVelocity();
 	float CalculateJumpMultipliers();

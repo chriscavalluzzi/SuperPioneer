@@ -6,7 +6,7 @@ void USuperPioneerRemoteCallObject::GetLifetimeReplicatedProps(TArray<FLifetimeP
 	DOREPLIFETIME(USuperPioneerRemoteCallObject, bDummy);
 }
 
-UFGCharacterMovementComponent* USuperPioneerRemoteCallObject::GetMovementComponent(AActor* actor) {
+UFGCharacterMovementComponent* USuperPioneerRemoteCallObject::GetMovementComponent(AFGCharacterPlayer* actor) {
 	TArray<UFGCharacterMovementComponent*> components;
 	actor->GetComponents<UFGCharacterMovementComponent>(components);
 	for (int i = 0; i < components.Num(); i++) {
@@ -15,15 +15,45 @@ UFGCharacterMovementComponent* USuperPioneerRemoteCallObject::GetMovementCompone
 	return nullptr;
 }
 
-void USuperPioneerRemoteCallObject::ServerSetSprintSpeed_Implementation(AActor* player, float newMaxSprintSpeed) {
+void USuperPioneerRemoteCallObject::ServerSetSprintSpeed_Implementation(AFGCharacterPlayer* player, float newMaxSprintSpeed) {
 	UFGCharacterMovementComponent* component = GetMovementComponent(player);
-	UE_LOG(LogTemp, Warning, TEXT("[SP] >>>>>>>>>> RECEIVED: %f"), newMaxSprintSpeed)
 	if (component) {
 		component->mMaxSprintSpeed = newMaxSprintSpeed;
-		UE_LOG(LogTemp, Warning, TEXT("[SP] >>>>>>>>>> APPLIED"))
 	}
 }
 
-bool USuperPioneerRemoteCallObject::ServerSetSprintSpeed_Validate(AActor* player, float newMaxSprintSpeed) {
-  return true;
+void USuperPioneerRemoteCallObject::ServerSetJumpZVelocity_Implementation(AFGCharacterPlayer* player, float newZVelocity) {
+	UFGCharacterMovementComponent* component = GetMovementComponent(player);
+	if (component) {
+		component->JumpZVelocity = newZVelocity;
+	}
+}
+
+void USuperPioneerRemoteCallObject::ServerSetAirControl_Implementation(AFGCharacterPlayer* player, float newAirControl) {
+	UFGCharacterMovementComponent* component = GetMovementComponent(player);
+	if (component) {
+		component->AirControl = newAirControl;
+	}
+}
+
+void USuperPioneerRemoteCallObject::ServerSetGravityScale_Implementation(AFGCharacterPlayer* player, float newGravityScale) {
+	UFGCharacterMovementComponent* component = GetMovementComponent(player);
+	if (component) {
+		component->GravityScale = newGravityScale;
+	}
+}
+
+void USuperPioneerRemoteCallObject::ServerSprintPressed_Implementation(AFGCharacterPlayer* player) {
+	player->SprintPressed();
+}
+
+void USuperPioneerRemoteCallObject::ServerSprintReleased_Implementation(AFGCharacterPlayer* player) {
+	player->SprintPressed();
+}
+
+void USuperPioneerRemoteCallObject::ServerDoJump_Implementation(AFGCharacterPlayer* player) {
+	UFGCharacterMovementComponent* component = GetMovementComponent(player);
+	if (component) {
+		component->DoJump(false);
+	}
 }

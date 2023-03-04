@@ -90,7 +90,7 @@ void USuperPioneerMovementComponent::SuperSprintPressed() {
 		wasSprintingBeforeSuperSprint = true;
 		wasHoldingToSprintBeforeSuperSprint = GetPlayerMovementComponent()->mHoldToSprint;
 	} else {
-		GetPlayer()->SprintPressed();
+		Invoke_SprintPressed();
 		wasSprintingBeforeSuperSprint = false;
 		wasHoldingToSprintBeforeSuperSprint = GetPlayerMovementComponent()->mHoldToSprint;
 	}
@@ -111,6 +111,24 @@ void USuperPioneerMovementComponent::NormalSprintPressed() {
 
 void USuperPioneerMovementComponent::NormalSprintReleased() {
 	isNormalSprintPressed = false;
+}
+
+void USuperPioneerMovementComponent::Invoke_SprintPressed() {
+	GetPlayer()->SprintPressed();
+
+	RCO* rco = GetRCO();
+	if (rco) {
+		rco->ServerSprintPressed(GetPlayer());
+	}
+}
+
+void USuperPioneerMovementComponent::Invoke_SprintReleased() {
+	GetPlayer()->SprintReleased();
+
+	RCO* rco = GetRCO();
+	if (rco) {
+		rco->ServerSprintReleased(GetPlayer());
+	}
 }
 
 void USuperPioneerMovementComponent::OnFalling() {
@@ -138,14 +156,14 @@ void USuperPioneerMovementComponent::ResetSprintToDefaults() {
 	if (GetPlayerMovementComponent()->mHoldToSprint) {
 		// Hold to sprint enabled
 		if (isNormalSprintPressed) {
-			GetPlayer()->SprintPressed();
+			Invoke_SprintPressed();
 		} else {
-			GetPlayer()->SprintReleased();
+			Invoke_SprintReleased();
 		}
 	} else {
 		// Toggle sprint enabled
 		if (!wasSprintingBeforeSuperSprint && GetIsPlayerSprinting()) {
-			GetPlayer()->SprintPressed();
+			Invoke_SprintPressed();
 		}
 	}
 }
@@ -159,7 +177,6 @@ void USuperPioneerMovementComponent::SetPlayerSprintSpeed(float newSprintSpeed) 
 
 	RCO* rco = GetRCO();
 	if (rco) {
-		UE_LOG(LogTemp, Warning, TEXT(">>>>>>>>>> SENDING: %f"), newSprintSpeed)
 		rco->ServerSetSprintSpeed(GetPlayer(), newSprintSpeed);
 	}
 }
@@ -200,7 +217,16 @@ void USuperPioneerMovementComponent::JumpReleased() {
 	isJumpPressed = false;
 	isJumpPrimed = true;
 	jumpHoldDuration = 0.0;
+	Invoke_Jump();
+}
+
+void USuperPioneerMovementComponent::Invoke_Jump() {
 	GetPlayerMovementComponent()->DoJump(false);
+
+	RCO* rco = GetRCO();
+	if (rco) {
+		rco->ServerDoJump(GetPlayer());
+	}
 }
 
 void USuperPioneerMovementComponent::OnLanded() {
@@ -248,6 +274,11 @@ float USuperPioneerMovementComponent::CalculateCurrentJumpHoldPercentOfMax() {
 
 void USuperPioneerMovementComponent::SetPlayerJumpZVelocity(float newZVelocity) {
 	GetPlayerMovementComponent()->JumpZVelocity = newZVelocity;
+
+	RCO* rco = GetRCO();
+	if (rco) {
+		rco->ServerSetJumpZVelocity(GetPlayer(), newZVelocity);
+	}
 }
 
 float USuperPioneerMovementComponent::GetPlayerJumpZVelocity() {
@@ -260,10 +291,20 @@ float USuperPioneerMovementComponent::CalculateAirControl() {
 
 void USuperPioneerMovementComponent::SetPlayerAirControl(float newAirControl) {
 	GetPlayerMovementComponent()->AirControl = newAirControl;
+
+	RCO* rco = GetRCO();
+	if (rco) {
+		rco->ServerSetAirControl(GetPlayer(), newAirControl);
+	}
 }
 
 void USuperPioneerMovementComponent::SetPlayerGravityScale(float newGravityScale) {
 	GetPlayerMovementComponent()->GravityScale = newGravityScale;
+
+	RCO* rco = GetRCO();
+	if (rco) {
+		rco->ServerSetGravityScale(GetPlayer(), newGravityScale);
+	}
 }
 
 float USuperPioneerMovementComponent::lerp(float a, float b, float t) {

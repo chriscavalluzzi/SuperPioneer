@@ -11,14 +11,35 @@ class SUPERPIONEER_API USuperPioneerRemoteCallObject : public UFGRemoteCallObjec
 	GENERATED_BODY()
 
 private:
-	UFGCharacterMovementComponent* GetMovementComponent(AActor* actor);
+	UFGCharacterMovementComponent* GetMovementComponent(AFGCharacterPlayer* actor);
 
 	// Dummy property required for RCO to function, do not remove
 	UPROPERTY(Replicated)
 	bool bDummy = true;
 
 public:
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerSetSprintSpeed(AActor* player, float newMaxSprintSpeed);
 
+	// Property Updates
+
+	UFUNCTION(Server, Reliable)
+	void ServerSetSprintSpeed(AFGCharacterPlayer* player, float newMaxSprintSpeed);
+
+	UFUNCTION(Server, Reliable)
+	void ServerSetJumpZVelocity(AFGCharacterPlayer* player, float newZVelocity);
+
+	UFUNCTION(Server, Reliable)
+	void ServerSetAirControl(AFGCharacterPlayer* player, float newAirControl);
+
+	UFUNCTION(Server, Reliable)
+	void ServerSetGravityScale(AFGCharacterPlayer* player, float newGravityScale);
+
+	// Actions
+	UFUNCTION(Server, Reliable)
+	void ServerSprintPressed(AFGCharacterPlayer* player);
+
+	UFUNCTION(Server, Reliable)
+	void ServerSprintReleased(AFGCharacterPlayer* player);
+
+	UFUNCTION(Server, Reliable)
+	void ServerDoJump(AFGCharacterPlayer* player);
 };
