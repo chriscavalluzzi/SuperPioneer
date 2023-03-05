@@ -88,6 +88,8 @@ private:
 
 	void JumpPressed();
 	void JumpReleased();
+	void ApplyJumpModifiers();
+	bool CheckIfJumpSafe();
 	void Invoke_Jump();
 	void JumpTick(float deltaTime);
 	float CalculateJumpZVelocity();

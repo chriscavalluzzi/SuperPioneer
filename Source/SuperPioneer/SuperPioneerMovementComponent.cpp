@@ -68,7 +68,7 @@ void USuperPioneerMovementComponent::ReloadConfig() {
 
 void USuperPioneerMovementComponent::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) {
 	if (config_superSprintEnabled) { SprintTick(DeltaTime); }
-	JumpTick(DeltaTime);
+	if (config_superJumpChargingEnabled) { JumpTick(DeltaTime); }
 }
 
 RCO* USuperPioneerMovementComponent::GetRCO() {
@@ -217,29 +217,42 @@ float USuperPioneerMovementComponent::CalculateCurrentSpeedPercentOfMax() {
 // Jumping
 
 void USuperPioneerMovementComponent::JumpPressed() {
+	if (!config_superJumpChargingEnabled && CheckIfJumpSafe()) {
+		ApplyJumpModifiers();
+	}
 	isJumpPressed = true;
 	isJumpPrimed = false;
 	jumpHoldDuration = 0.0;
 }
 
 void USuperPioneerMovementComponent::JumpReleased() {
-	if (GetPlayer()->CanJumpInternal_Implementation() && !GetPlayer()->IsMoveInputIgnored()) {
-		SetPlayerJumpZVelocity(CalculateJumpZVelocity());
-		SetPlayerAirControl(CalculateAirControl());
-		SetPlayerGravityScale(defaultGravityScale + (CalculateJumpMultipliers() - 1.0f) * config_gravityScalingMultiplier);
+	if (config_superJumpChargingEnabled && CheckIfJumpSafe()) {
+		ApplyJumpModifiers();
 		isJumpPrimed = true;
 		Invoke_Jump();
 	} else {
 		isJumpPrimed = false;
 	}
-	UE_LOG(LogTemp, Warning, TEXT("[SP] ############ Jump Modifications ############"))
-	UE_LOG(LogTemp, Warning, TEXT("[SP] Raw Multiplier:    %f"), CalculateJumpMultipliers())
-	UE_LOG(LogTemp, Warning, TEXT("[SP] New JumpZVelocity: %f"), GetPlayerMovementComponent()->JumpZVelocity)
-	UE_LOG(LogTemp, Warning, TEXT("[SP] New AirControl:    %f"), GetPlayerMovementComponent()->AirControl)
-	UE_LOG(LogTemp, Warning, TEXT("[SP] New GravityScale:  %f"), GetPlayerMovementComponent()->GravityScale)
-	UE_LOG(LogTemp, Warning, TEXT("[SP] ############################################"))
 	isJumpPressed = false;
 	jumpHoldDuration = 0.0;
+}
+
+void USuperPioneerMovementComponent::ApplyJumpModifiers() {
+	SetPlayerJumpZVelocity(CalculateJumpZVelocity());
+	if (config_superJumpModificationsEnabled) {
+		SetPlayerAirControl(CalculateAirControl());
+		SetPlayerGravityScale(defaultGravityScale + (CalculateJumpMultipliers() - 1.0f) * config_gravityScalingMultiplier);
+		UE_LOG(LogTemp, Warning, TEXT("[SP] ############ Jump Modifications ############"))
+		UE_LOG(LogTemp, Warning, TEXT("[SP] Raw Multiplier:    %f"), CalculateJumpMultipliers())
+		UE_LOG(LogTemp, Warning, TEXT("[SP] New JumpZVelocity: %f"), GetPlayerMovementComponent()->JumpZVelocity)
+		UE_LOG(LogTemp, Warning, TEXT("[SP] New AirControl:    %f"), GetPlayerMovementComponent()->AirControl)
+		UE_LOG(LogTemp, Warning, TEXT("[SP] New GravityScale:  %f"), GetPlayerMovementComponent()->GravityScale)
+		UE_LOG(LogTemp, Warning, TEXT("[SP] ############################################"))
+	}
+}
+
+bool USuperPioneerMovementComponent::CheckIfJumpSafe() {
+	return GetPlayer()->CanJumpInternal_Implementation() && !GetPlayer()->IsMoveInputIgnored();
 }
 
 void USuperPioneerMovementComponent::Invoke_Jump() {
@@ -271,7 +284,7 @@ void USuperPioneerMovementComponent::JumpTick(float deltaTime) {
 }
 
 bool USuperPioneerMovementComponent::CheckAndConsumeJump() {
-	if (isJumpPrimed) {
+	if (isJumpPrimed || !config_superJumpChargingEnabled) {
 		isJumpPrimed = false;
 		return true;
 	} else {
@@ -280,13 +293,24 @@ bool USuperPioneerMovementComponent::CheckAndConsumeJump() {
 }
 
 float USuperPioneerMovementComponent::CalculateJumpZVelocity() {
-	float adjustedgravityScalingMultiplier = config_jumpMultiplierPerGravityScale * config_gravityScalingMultiplier;
+	float adjustedgravityScalingMultiplier;
+	if (config_superJumpModificationsEnabled) {
+		adjustedgravityScalingMultiplier = config_jumpMultiplierPerGravityScale * config_gravityScalingMultiplier;
+	} else {
+		adjustedgravityScalingMultiplier = 1.0f;
+	}
 	return defaultJumpZVelocity * ((CalculateJumpMultipliers() - 1.0f) * adjustedgravityScalingMultiplier + 1.0f);
 }
 
 float USuperPioneerMovementComponent::CalculateJumpMultipliers() {
-	float speedMultiplier = lerp(1.0f, config_superJumpSpeedMultiplierMax, CalculateCurrentSpeedPercentOfMax());
-	float holdMultiplier = lerp(1.0f, config_superJumpHoldMultiplierMax, CalculateCurrentJumpHoldPercentOfMax());
+	float speedMultiplier = 1.0f;
+	if (config_superJumpModificationsEnabled) {
+		speedMultiplier = lerp(1.0f, config_superJumpSpeedMultiplierMax, CalculateCurrentSpeedPercentOfMax());
+	}
+	float holdMultiplier = 1.0f;
+	if (config_superJumpChargingEnabled) {
+		holdMultiplier = lerp(1.0f, config_superJumpHoldMultiplierMax, CalculateCurrentJumpHoldPercentOfMax());
+	}
 	return speedMultiplier * holdMultiplier;
 }
 
