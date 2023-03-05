@@ -4,22 +4,30 @@
 	"VersionName": "1.0.0",
 	"SemVersion": "1.0.0",
 	"FriendlyName": "SuperPioneer",
-	"Description": "",
+	"Description": "A super-powered player movement mod for Satisfactory. Sprint at the speed of sound and jump over mountains!",
 	"Category": "Modding",
-	"CreatedBy": "",
+	"CreatedBy": "Chris Cavalluzzi",
 	"CreatedByURL": "",
-	"DocsURL": "",
+	"DocsURL": "https://github.com/chriscavalluzzi/SuperPioneer",
 	"MarketplaceURL": "",
-	"SupportURL": "",
+	"SupportURL": "https://github.com/chriscavalluzzi/SuperPioneer",
 	"CanContainContent": true,
 	"IsBetaVersion": false,
 	"IsExperimentalVersion": false,
 	"Installed": false,
 	"Modules": [
-        {
-            "Name": "SuperPioneer",
-            "Type": "Runtime",
-            "LoadingPhase": "Default"
-        }
-    ]
+		{
+			"Name": "SuperPioneer",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "SML",
+			"SemVersion": "^3.0.0",
+			"Enabled": true
+		}
+	],
+	"RemoteVersionRange": "^1.0.0"
 }
