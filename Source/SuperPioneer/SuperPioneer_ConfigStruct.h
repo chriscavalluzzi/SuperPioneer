@@ -7,6 +7,7 @@
 struct FSuperPioneer_ConfigStruct_superSprint;
 struct FSuperPioneer_ConfigStruct_superJumpCharging;
 struct FSuperPioneer_ConfigStruct_superJumpModifications;
+struct FSuperPioneer_ConfigStruct_other;
 struct FSuperPioneer_ConfigStruct_superSprint_keybindHint;
 
 USTRUCT(BlueprintType)
@@ -66,6 +67,14 @@ public:
     float jumpMultiplierPerGravityScale;
 };
 
+USTRUCT(BlueprintType)
+struct FSuperPioneer_ConfigStruct_other {
+    GENERATED_BODY()
+public:
+    UPROPERTY(BlueprintReadWrite)
+    bool disableFallDamage;
+};
+
 /* Struct generated from Mod Configuration Asset '/SuperPioneer/SuperPioneer_Config' */
 USTRUCT(BlueprintType)
 struct FSuperPioneer_ConfigStruct {
@@ -79,6 +88,9 @@ public:
 
     UPROPERTY(BlueprintReadWrite)
     FSuperPioneer_ConfigStruct_superJumpModifications superJumpModifications;
+
+    UPROPERTY(BlueprintReadWrite)
+    FSuperPioneer_ConfigStruct_other other;
 
     /* Retrieves active configuration value and returns object of this struct containing it */
     static FSuperPioneer_ConfigStruct GetActiveConfig() {
