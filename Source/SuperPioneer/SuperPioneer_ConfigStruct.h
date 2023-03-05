@@ -5,22 +5,36 @@
 #include "SuperPioneer_ConfigStruct.generated.h"
 
 struct FSuperPioneer_ConfigStruct_superSprint;
-struct FSuperPioneer_ConfigStruct_superJump;
+struct FSuperPioneer_ConfigStruct_superJumpCharging;
+struct FSuperPioneer_ConfigStruct_superJumpModifications;
+struct FSuperPioneer_ConfigStruct_superSprint_keybindHint;
+
+USTRUCT(BlueprintType)
+struct FSuperPioneer_ConfigStruct_superSprint_keybindHint {
+    GENERATED_BODY()
+public:
+};
 
 USTRUCT(BlueprintType)
 struct FSuperPioneer_ConfigStruct_superSprint {
     GENERATED_BODY()
 public:
     UPROPERTY(BlueprintReadWrite)
+    bool superSprintEnabled;
+
+    UPROPERTY(BlueprintReadWrite)
     float superSprintMaxSpeed;
+
+    UPROPERTY(BlueprintReadWrite)
+    FSuperPioneer_ConfigStruct_superSprint_keybindHint keybindHint;
 };
 
 USTRUCT(BlueprintType)
-struct FSuperPioneer_ConfigStruct_superJump {
+struct FSuperPioneer_ConfigStruct_superJumpCharging {
     GENERATED_BODY()
 public:
     UPROPERTY(BlueprintReadWrite)
-    float superJumpSpeedMultiplierMax;
+    bool jumpChargingEnabled;
 
     UPROPERTY(BlueprintReadWrite)
     float superJumpHoldMultiplierMax;
@@ -30,6 +44,17 @@ public:
 
     UPROPERTY(BlueprintReadWrite)
     float superJumpHoldTimeMax;
+};
+
+USTRUCT(BlueprintType)
+struct FSuperPioneer_ConfigStruct_superJumpModifications {
+    GENERATED_BODY()
+public:
+    UPROPERTY(BlueprintReadWrite)
+    bool jumpModificationsEnabled;
+
+    UPROPERTY(BlueprintReadWrite)
+    float superJumpSpeedMultiplierMax;
 
     UPROPERTY(BlueprintReadWrite)
     float maxAirControl;
@@ -50,7 +75,10 @@ public:
     FSuperPioneer_ConfigStruct_superSprint superSprint;
 
     UPROPERTY(BlueprintReadWrite)
-    FSuperPioneer_ConfigStruct_superJump superJump;
+    FSuperPioneer_ConfigStruct_superJumpCharging superJumpCharging;
+
+    UPROPERTY(BlueprintReadWrite)
+    FSuperPioneer_ConfigStruct_superJumpModifications superJumpModifications;
 
     /* Retrieves active configuration value and returns object of this struct containing it */
     static FSuperPioneer_ConfigStruct GetActiveConfig() {

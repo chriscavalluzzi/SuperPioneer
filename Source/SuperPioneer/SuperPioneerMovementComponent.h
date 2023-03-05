@@ -41,6 +41,7 @@ private:
 
 	// Sprinting
 
+	bool config_superSprintEnabled;
 	float config_superSprintMaxSpeed;
 
 	bool isSuperSprintPressed;
@@ -67,10 +68,12 @@ private:
 
 	// Jumping
 
-	float config_superJumpSpeedMultiplierMax;
+	bool config_superJumpChargingEnabled;
 	float config_superJumpHoldMultiplierMax;
 	float config_superJumpHoldTimeMin;
 	float config_superJumpHoldTimeMax;
+	bool config_superJumpModificationsEnabled;
+	float config_superJumpSpeedMultiplierMax;
 	float config_maxAirControl;
 	float config_gravityScalingMultiplier;
 	float config_jumpMultiplierPerGravityScale;

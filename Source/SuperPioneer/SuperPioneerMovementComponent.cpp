@@ -46,18 +46,28 @@ void USuperPioneerMovementComponent::Setup(AFGCharacterPlayer* _localPlayer, UIn
 
 void USuperPioneerMovementComponent::ReloadConfig() {
 	FSuperPioneer_ConfigStruct SPConfig = FSuperPioneer_ConfigStruct::GetActiveConfig();
+
+	config_superSprintEnabled = SPConfig.superSprint.superSprintEnabled;
 	config_superSprintMaxSpeed = SPConfig.superSprint.superSprintMaxSpeed;
-	config_superJumpSpeedMultiplierMax = SPConfig.superJump.superJumpSpeedMultiplierMax;
-	config_superJumpHoldMultiplierMax = SPConfig.superJump.superJumpHoldMultiplierMax;
-	config_superJumpHoldTimeMin = SPConfig.superJump.superJumpHoldTimeMin;
-	config_superJumpHoldTimeMax = std::max(SPConfig.superJump.superJumpHoldTimeMax,config_superJumpHoldTimeMin);
-	config_maxAirControl = SPConfig.superJump.maxAirControl;
-	config_gravityScalingMultiplier = SPConfig.superJump.gravityScalingMultiplier;
-	config_jumpMultiplierPerGravityScale = SPConfig.superJump.jumpMultiplierPerGravityScale;
+
+	config_superJumpChargingEnabled = SPConfig.superJumpCharging.jumpChargingEnabled;
+	config_superJumpHoldMultiplierMax = SPConfig.superJumpCharging.superJumpHoldMultiplierMax;
+	config_superJumpHoldTimeMin = SPConfig.superJumpCharging.superJumpHoldTimeMin;
+	config_superJumpHoldTimeMax = std::max(SPConfig.superJumpCharging.superJumpHoldTimeMax, config_superJumpHoldTimeMin);
+
+	config_superJumpModificationsEnabled = SPConfig.superJumpModifications.jumpModificationsEnabled;
+	config_superJumpSpeedMultiplierMax = SPConfig.superJumpModifications.superJumpSpeedMultiplierMax;
+	config_maxAirControl = SPConfig.superJumpModifications.maxAirControl;
+	config_gravityScalingMultiplier = SPConfig.superJumpModifications.gravityScalingMultiplier;
+	config_jumpMultiplierPerGravityScale = SPConfig.superJumpModifications.jumpMultiplierPerGravityScale;
+
+	if (!config_superSprintEnabled) {
+		SetPlayerSprintSpeed(defaultMaxSprintSpeed);
+	}
 }
 
 void USuperPioneerMovementComponent::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) {
-	SprintTick(DeltaTime);
+	if (config_superSprintEnabled) { SprintTick(DeltaTime); }
 	JumpTick(DeltaTime);
 }
 
@@ -72,7 +82,7 @@ AFGCharacterPlayer* USuperPioneerMovementComponent::GetPlayer() {
 	if (playerPtr) {
 		return playerPtr;
 	} else {
-		UE_LOG(LogTemp, Warning, TEXT("[SP!] Get owner cast failed!"))
+		UE_LOG(LogTemp, Error, TEXT("[SP!] Get owner cast failed!"))
 		return playerPtr;
 	}
 }
@@ -85,26 +95,31 @@ UFGCharacterMovementComponent* USuperPioneerMovementComponent::GetPlayerMovement
 
 void USuperPioneerMovementComponent::SuperSprintPressed() {
 	//UE_LOG(LogTemp, Warning, TEXT("[SP] Super Sprint Pressed"))
-	isSuperSprintPressed = true;
-	if (eligibleForSprintResume) {
-		return;
-	}
-	if (GetIsPlayerSprinting()) {
-		wasSprintingBeforeSuperSprint = true;
-		wasHoldingToSprintBeforeSuperSprint = GetPlayerMovementComponent()->mHoldToSprint;
-	} else {
-		Invoke_SprintPressed();
-		wasSprintingBeforeSuperSprint = false;
-		wasHoldingToSprintBeforeSuperSprint = GetPlayerMovementComponent()->mHoldToSprint;
+	if (config_superSprintEnabled) {
+		isSuperSprintPressed = true;
+		if (eligibleForSprintResume) {
+			return;
+		}
+		if (GetIsPlayerSprinting()) {
+			wasSprintingBeforeSuperSprint = true;
+			wasHoldingToSprintBeforeSuperSprint = GetPlayerMovementComponent()->mHoldToSprint;
+		}
+		else {
+			Invoke_SprintPressed();
+			wasSprintingBeforeSuperSprint = false;
+			wasHoldingToSprintBeforeSuperSprint = GetPlayerMovementComponent()->mHoldToSprint;
+		}
 	}
 	//UE_LOG(LogTemp, Warning, TEXT("[SP] HoldToSprint: %s"), (wasHoldingToSprintBeforeSuperSprint ? TEXT("true") : TEXT("false")))
 }
 
 void USuperPioneerMovementComponent::SuperSprintReleased() {
 	//UE_LOG(LogTemp, Warning, TEXT("[SP] Super Sprint Released"))
-	isSuperSprintPressed = false;
-	if (!GetPlayerMovementComponent()->IsFalling()) {
-		ResetSprintToDefaults();
+	if (config_superSprintEnabled) {
+		isSuperSprintPressed = false;
+		if (!GetPlayerMovementComponent()->IsFalling()) {
+			ResetSprintToDefaults();
+		}
 	}
 }
 
