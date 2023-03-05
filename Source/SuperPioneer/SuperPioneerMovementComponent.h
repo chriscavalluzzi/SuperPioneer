@@ -17,7 +17,7 @@ class SUPERPIONEER_API USuperPioneerMovementComponent : public UActorComponent
 public:
 
 	USuperPioneerMovementComponent();
-	void Setup(AFGCharacterPlayer* _localPlayer, UInputComponent* _inputComponent);
+	void Setup(AFGCharacterPlayer* _localPlayer, UInputComponent* _inputComponent, bool isHost);
 	void ReloadConfig();
 	bool CheckAndConsumeJump();
 	void OnLanded();
@@ -33,6 +33,7 @@ private:
 
 	AFGCharacterPlayer* localPlayer;
 	const char* superSprintCommandName = "SuperPioneer.SuperSprint";
+	bool isHost;
 
 	RCO* GetRCO();
 	AFGCharacterPlayer* GetPlayer();

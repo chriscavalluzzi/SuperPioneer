@@ -25,13 +25,13 @@ void FSuperPioneerModule::RegisterHooks() {
 
 	AFGGameMode * exampleGameMode = GetMutableDefault<AFGGameMode>();
 
-	SUBSCRIBE_METHOD_VIRTUAL(AFGGameMode::PostLogin, exampleGameMode, [](auto& scope, AFGGameMode* gm, APlayerController* pc) {
-		UE_LOG(LogTemp, Warning, TEXT("[SP] >>>>>>>>>> POST LOGIN"))
+	SUBSCRIBE_METHOD_VIRTUAL(AFGGameMode::PostLogin, exampleGameMode, [this](auto& scope, AFGGameMode* gm, APlayerController* pc) {
 		if (gm->HasAuthority() && !gm->IsMainMenuGameMode()) {
-			UE_LOG(LogTemp, Warning, TEXT("[SP] >>>>>>>>>> REGISTERING RCO"))
+			UE_LOG(LogTemp, Warning, TEXT("[SP] Logged in as host, registering Remote Call Object"))
 			gm->RegisterRemoteCallObjectClass(USuperPioneerRemoteCallObject::StaticClass());
 		}
 	});
+
 
 	AFGCharacterPlayer* examplePlayerCharacter = GetMutableDefault<AFGCharacterPlayer>();
 
@@ -49,8 +49,16 @@ void FSuperPioneerModule::RegisterHooks() {
 			// After each player's InputComponent is ready, setup the movement component and tie it to the player
 			// Called after every spawn
 			UE_LOG(LogTemp, Warning, TEXT("[SP] New player object created, starting component setup"))
+
+			bool isHost = false;
+			UWorld* world = self->GetWorld();
+			AGameModeBase* gm = UGameplayStatics::GetGameMode(world);
+			if (gm && gm->HasAuthority()) {
+				isHost = true;
+			}
+
 			USuperPioneerMovementComponent* newComponent = NewObject<USuperPioneerMovementComponent>(self, SPMovementComponentName);
-			newComponent->Setup(self, PlayerInputComponent);
+			newComponent->Setup(self, PlayerInputComponent, isHost);
 			newComponent->RegisterComponent();
 			if (self->IsLocallyControlled()) {
 				localSPMovementComponent = newComponent;

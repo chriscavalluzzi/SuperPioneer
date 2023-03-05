@@ -22,9 +22,12 @@ USuperPioneerMovementComponent::USuperPioneerMovementComponent() {
 	sprintDuration = 0.0;
 };
 
-void USuperPioneerMovementComponent::Setup(AFGCharacterPlayer* _localPlayer, UInputComponent* _inputComponent) {
+void USuperPioneerMovementComponent::Setup(AFGCharacterPlayer* _localPlayer, UInputComponent* _inputComponent, bool _isHost) {
   UE_LOG(LogTemp,Warning,TEXT("[SP] Starting Manager Setup"))
-  this->localPlayer = _localPlayer;
+	UE_LOG(LogTemp,Warning,TEXT("[SP] isHost: %s"), (_isHost ? TEXT("true") : TEXT("false")))
+
+	this->localPlayer = _localPlayer;
+	this->isHost = _isHost;
 
 	ReloadConfig();
 
@@ -117,7 +120,7 @@ void USuperPioneerMovementComponent::Invoke_SprintPressed() {
 	GetPlayer()->SprintPressed();
 
 	RCO* rco = GetRCO();
-	if (rco) {
+	if (rco && !isHost) {
 		rco->ServerSprintPressed(GetPlayer());
 	}
 }
@@ -126,7 +129,7 @@ void USuperPioneerMovementComponent::Invoke_SprintReleased() {
 	GetPlayer()->SprintReleased();
 
 	RCO* rco = GetRCO();
-	if (rco) {
+	if (rco && !isHost) {
 		rco->ServerSprintReleased(GetPlayer());
 	}
 }
@@ -176,7 +179,7 @@ void USuperPioneerMovementComponent::SetPlayerSprintSpeed(float newSprintSpeed) 
 	GetPlayerMovementComponent()->mMaxSprintSpeed = newSprintSpeed;
 
 	RCO* rco = GetRCO();
-	if (rco) {
+	if (rco && !isHost) {
 		rco->ServerSetSprintSpeed(GetPlayer(), newSprintSpeed);
 	}
 }
@@ -228,7 +231,7 @@ void USuperPioneerMovementComponent::Invoke_Jump() {
 	GetPlayerMovementComponent()->DoJump(false);
 
 	RCO* rco = GetRCO();
-	if (rco) {
+	if (rco && !isHost) {
 		rco->ServerDoJump(GetPlayer());
 	}
 }
@@ -280,7 +283,7 @@ void USuperPioneerMovementComponent::SetPlayerJumpZVelocity(float newZVelocity) 
 	GetPlayerMovementComponent()->JumpZVelocity = newZVelocity;
 
 	RCO* rco = GetRCO();
-	if (rco) {
+	if (rco && !isHost) {
 		rco->ServerSetJumpZVelocity(GetPlayer(), newZVelocity);
 	}
 }
@@ -297,7 +300,7 @@ void USuperPioneerMovementComponent::SetPlayerAirControl(float newAirControl) {
 	GetPlayerMovementComponent()->AirControl = newAirControl;
 
 	RCO* rco = GetRCO();
-	if (rco) {
+	if (rco && !isHost) {
 		rco->ServerSetAirControl(GetPlayer(), newAirControl);
 	}
 }
@@ -306,7 +309,7 @@ void USuperPioneerMovementComponent::SetPlayerGravityScale(float newGravityScale
 	GetPlayerMovementComponent()->GravityScale = newGravityScale;
 
 	RCO* rco = GetRCO();
-	if (rco) {
+	if (rco && !isHost) {
 		rco->ServerSetGravityScale(GetPlayer(), newGravityScale);
 	}
 }

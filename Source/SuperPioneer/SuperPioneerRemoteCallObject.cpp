@@ -48,7 +48,7 @@ void USuperPioneerRemoteCallObject::ServerSprintPressed_Implementation(AFGCharac
 }
 
 void USuperPioneerRemoteCallObject::ServerSprintReleased_Implementation(AFGCharacterPlayer* player) {
-	player->SprintPressed();
+	player->SprintReleased();
 }
 
 void USuperPioneerRemoteCallObject::ServerDoJump_Implementation(AFGCharacterPlayer* player) {
