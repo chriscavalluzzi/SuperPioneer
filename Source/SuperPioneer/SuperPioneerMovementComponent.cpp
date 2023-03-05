@@ -61,8 +61,15 @@ void USuperPioneerMovementComponent::ReloadConfig() {
 	config_gravityScalingMultiplier = SPConfig.superJumpModifications.gravityScalingMultiplier;
 	config_jumpMultiplierPerGravityScale = SPConfig.superJumpModifications.jumpMultiplierPerGravityScale;
 
+	config_disableFallDamage = SPConfig.other.disableFallDamage;
+
 	if (!config_superSprintEnabled) {
 		SetPlayerSprintSpeed(defaultMaxSprintSpeed);
+	}
+
+	RCO* rco = GetRCO();
+	if (rco) {
+		rco->ServerSetFallDamageDisabled(config_disableFallDamage);
 	}
 }
 

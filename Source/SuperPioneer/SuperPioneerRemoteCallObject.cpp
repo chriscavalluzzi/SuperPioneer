@@ -4,6 +4,7 @@ void USuperPioneerRemoteCallObject::GetLifetimeReplicatedProps(TArray<FLifetimeP
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(USuperPioneerRemoteCallObject, bDummy);
+	DOREPLIFETIME(USuperPioneerRemoteCallObject, fallDamageDisabled);
 }
 
 UFGCharacterMovementComponent* USuperPioneerRemoteCallObject::GetMovementComponent(AFGCharacterPlayer* actor) {
@@ -43,6 +44,10 @@ void USuperPioneerRemoteCallObject::ServerSetGravityScale_Implementation(AFGChar
 	}
 }
 
+void USuperPioneerRemoteCallObject::ServerSetFallDamageDisabled_Implementation(bool newFallDamageDisabled) {
+	this->fallDamageDisabled = newFallDamageDisabled;
+}
+
 void USuperPioneerRemoteCallObject::ServerSprintPressed_Implementation(AFGCharacterPlayer* player) {
 	player->SprintPressed();
 }
@@ -56,4 +61,8 @@ void USuperPioneerRemoteCallObject::ServerDoJump_Implementation(AFGCharacterPlay
 	if (component) {
 		component->DoJump(false);
 	}
+}
+
+bool USuperPioneerRemoteCallObject::GetFallDamageDisabled() {
+	return fallDamageDisabled;
 }

@@ -3,6 +3,7 @@
 #include "SuperPioneerRemoteCallObject.h"
 #include "FGGameMode.h"
 #include "FGCharacterPlayer.h"
+#include "FGPlayerController.h"
 #include "FGCharacterMovementComponent.h"
 
 void FSuperPioneerModule::StartupModule() {
@@ -102,7 +103,13 @@ void FSuperPioneerModule::RegisterHooks() {
 	});
 	SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterBase::CalculateFallDamage, examplePlayerCharacter, [](auto& scope, const AFGCharacterBase* self, float zSpeed) {
 		// Remove fall damage
-		scope.Override((int32)0);
+		AFGPlayerController* controller = Cast<AFGPlayerController>(self->Controller);
+		if (controller) {
+			RCO* rco = (RCO*)controller->GetRemoteCallObjectOfClass(RCO::StaticClass());
+			if (rco && rco->GetFallDamageDisabled()) {
+				scope.Override((int32)0);
+			}
+		}
 	});
 }
 

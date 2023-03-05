@@ -101,6 +101,9 @@ private:
 	void SetPlayerAirControl(float newAirControl);
 	void SetPlayerGravityScale(float newGravityScale);
 
+	// Other
+	bool config_disableFallDamage;
+
 	// Utilities
 
 	static float lerp(float a, float b, float t);

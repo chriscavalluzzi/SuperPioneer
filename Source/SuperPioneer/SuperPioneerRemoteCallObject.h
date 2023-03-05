@@ -16,6 +16,8 @@ private:
 	// Dummy property required for RCO to function, do not remove
 	UPROPERTY(Replicated)
 	bool bDummy = true;
+	UPROPERTY(Replicated)
+	bool fallDamageDisabled = true;
 
 public:
 
@@ -33,6 +35,9 @@ public:
 	UFUNCTION(Server, Reliable)
 	void ServerSetGravityScale(AFGCharacterPlayer* player, float newGravityScale);
 
+	UFUNCTION(Server, Reliable)
+	void ServerSetFallDamageDisabled(bool newFallDamageDisabled);
+
 	// Actions
 	UFUNCTION(Server, Reliable)
 	void ServerSprintPressed(AFGCharacterPlayer* player);
@@ -42,4 +47,6 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void ServerDoJump(AFGCharacterPlayer* player);
+
+	bool GetFallDamageDisabled();
 };
