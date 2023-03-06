@@ -64,6 +64,9 @@ public:
 
     UPROPERTY(BlueprintReadWrite)
     float jumpMultiplierPerGravityScale;
+
+    UPROPERTY(BlueprintReadWrite)
+    float swimmingJumpMultiplier;
 };
 
 USTRUCT(BlueprintType)

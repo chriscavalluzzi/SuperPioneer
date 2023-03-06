@@ -65,6 +65,7 @@ void USuperPioneerMovementComponent::ReloadConfig() {
 		config_maxAirControl = SPConfig.superJumpModifications.maxAirControl;
 		config_gravityScalingMultiplier = SPConfig.superJumpModifications.gravityScalingMultiplier;
 		config_jumpMultiplierPerGravityScale = SPConfig.superJumpModifications.jumpMultiplierPerGravityScale;
+		config_swimmingJumpMultiplier = SPConfig.superJumpModifications.swimmingJumpMultiplier;
 
 		config_disableFallDamage = SPConfig.other.disableFallDamage;
 
@@ -240,7 +241,15 @@ float USuperPioneerMovementComponent::CalculateCurrentSpeedPercentOfMax() {
 // Jumping
 
 void USuperPioneerMovementComponent::JumpPressed() {
-	if (!config_superJumpChargingEnabled && CheckIfJumpSafe()) {
+	if (GetPlayerMovementComponent()->IsSwimming()) {
+		if (config_superJumpModificationsEnabled) {
+			SetPlayerJumpZVelocity(defaultJumpZVelocity * config_swimmingJumpMultiplier);
+		} else {
+			SetPlayerJumpZVelocity(defaultJumpZVelocity);
+		}
+		SetPlayerAirControl(defaultAirControl);
+		SetPlayerGravityScale(defaultGravityScale);
+	} else if (!config_superJumpChargingEnabled && CheckIfJumpSafe()) {
 		ApplyJumpModifiers();
 	}
 	isJumpPressed = true;
@@ -249,7 +258,7 @@ void USuperPioneerMovementComponent::JumpPressed() {
 }
 
 void USuperPioneerMovementComponent::JumpReleased() {
-	if (config_superJumpChargingEnabled && CheckIfJumpSafe()) {
+	if (config_superJumpChargingEnabled && !GetPlayerMovementComponent()->IsSwimming() && CheckIfJumpSafe()) {
 		ApplyJumpModifiers();
 		isJumpPrimed = true;
 		Invoke_Jump();
@@ -301,7 +310,7 @@ void USuperPioneerMovementComponent::JumpTick(float deltaTime) {
 }
 
 bool USuperPioneerMovementComponent::CheckAndConsumeJump() {
-	if (isJumpPrimed || !config_superJumpChargingEnabled) {
+	if (isJumpPrimed || !config_superJumpChargingEnabled || GetPlayerMovementComponent()->IsSwimming()) {
 		isJumpPrimed = false;
 		return true;
 	} else {

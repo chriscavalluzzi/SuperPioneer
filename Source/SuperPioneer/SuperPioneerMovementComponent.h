@@ -85,6 +85,7 @@ private:
 	float config_maxAirControl;
 	float config_gravityScalingMultiplier;
 	float config_jumpMultiplierPerGravityScale;
+	float config_swimmingJumpMultiplier;
 
 	float defaultJumpZVelocity;
 	float defaultAirControl;
