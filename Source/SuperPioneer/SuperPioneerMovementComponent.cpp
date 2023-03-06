@@ -8,7 +8,7 @@
 #include "FGCharacterMovementComponent.h"
 
 USuperPioneerMovementComponent::USuperPioneerMovementComponent() {
-  UE_LOG(LogTemp, Warning, TEXT("[SP] Sprint Manager Construction"))
+  UE_LOG(LogTemp, Warning, TEXT("[SP] Starting SP Movement Component Construction"))
 	PrimaryComponentTick.bCanEverTick = true;
 	isSuperSprintPressed = false;
 	isNormalSprintPressed = false;
@@ -23,8 +23,7 @@ USuperPioneerMovementComponent::USuperPioneerMovementComponent() {
 };
 
 void USuperPioneerMovementComponent::Setup(AFGCharacterPlayer* _localPlayer, UInputComponent* _inputComponent, bool _isHost) {
-  UE_LOG(LogTemp,Warning,TEXT("[SP] Starting Manager Setup"))
-	UE_LOG(LogTemp,Warning,TEXT("[SP] isHost: %s"), (_isHost ? TEXT("true") : TEXT("false")))
+	UE_LOG(LogTemp,Warning,TEXT("[SP] Starting SP Movement Component Setup (isHost: %s)"), (_isHost ? TEXT("true") : TEXT("false")))
 
 	this->localPlayer = _localPlayer;
 	this->isHost = _isHost;
@@ -46,7 +45,7 @@ void USuperPioneerMovementComponent::Setup(AFGCharacterPlayer* _localPlayer, UIn
 }
 
 void USuperPioneerMovementComponent::ReloadConfig() {
-	if (IsValid(GetPlayer())) {
+	if (!isDestroyed && IsValid(GetPlayer()) && IsValid(GetPlayer()->Controller)) {
 
 		FSuperPioneer_ConfigStruct SPConfig = FSuperPioneer_ConfigStruct::GetActiveConfig();
 
@@ -99,10 +98,13 @@ UFGCharacterMovementComponent* USuperPioneerMovementComponent::GetPlayerMovement
 	return GetPlayer()->GetFGMovementComponent();
 }
 
+void USuperPioneerMovementComponent::EndPlay(const EEndPlayReason::Type EndPlayReason) {
+	isDestroyed = true;
+}
+
 // Sprinting
 
 void USuperPioneerMovementComponent::SuperSprintPressed() {
-	//UE_LOG(LogTemp, Warning, TEXT("[SP] Super Sprint Pressed"))
 	if (config_superSprintEnabled) {
 		isSuperSprintPressed = true;
 		if (eligibleForSprintResume) {
@@ -118,11 +120,9 @@ void USuperPioneerMovementComponent::SuperSprintPressed() {
 			wasHoldingToSprintBeforeSuperSprint = GetPlayerMovementComponent()->mHoldToSprint;
 		}
 	}
-	//UE_LOG(LogTemp, Warning, TEXT("[SP] HoldToSprint: %s"), (wasHoldingToSprintBeforeSuperSprint ? TEXT("true") : TEXT("false")))
 }
 
 void USuperPioneerMovementComponent::SuperSprintReleased() {
-	//UE_LOG(LogTemp, Warning, TEXT("[SP] Super Sprint Released"))
 	if (config_superSprintEnabled) {
 		isSuperSprintPressed = false;
 		if (!GetPlayerMovementComponent()->IsFalling()) {
@@ -265,12 +265,6 @@ void USuperPioneerMovementComponent::ApplyJumpModifiers() {
 	if (config_superJumpModificationsEnabled) {
 		SetPlayerAirControl(CalculateAirControl());
 		SetPlayerGravityScale(defaultGravityScale + (CalculateJumpMultipliers() - 1.0f) * config_gravityScalingMultiplier);
-		UE_LOG(LogTemp, Warning, TEXT("[SP] ############ Jump Modifications ############"))
-		UE_LOG(LogTemp, Warning, TEXT("[SP] Raw Multiplier:    %f"), CalculateJumpMultipliers())
-		UE_LOG(LogTemp, Warning, TEXT("[SP] New JumpZVelocity: %f"), GetPlayerMovementComponent()->JumpZVelocity)
-		UE_LOG(LogTemp, Warning, TEXT("[SP] New AirControl:    %f"), GetPlayerMovementComponent()->AirControl)
-		UE_LOG(LogTemp, Warning, TEXT("[SP] New GravityScale:  %f"), GetPlayerMovementComponent()->GravityScale)
-		UE_LOG(LogTemp, Warning, TEXT("[SP] ############################################"))
 	}
 }
 
@@ -292,7 +286,7 @@ void USuperPioneerMovementComponent::OnLanded() {
 	SetPlayerAirControl(defaultAirControl);
 	SetPlayerGravityScale(defaultGravityScale);
 	if (eligibleForSprintResume && isSuperSprintPressed) {
-		//GetPlayer()->SprintPressed();
+		// Allow sprint to continue
 	} else {
 		ResetSprintToDefaults();
 	}

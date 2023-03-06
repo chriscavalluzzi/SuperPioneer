@@ -34,10 +34,12 @@ private:
 	AFGCharacterPlayer* localPlayer;
 	const char* superSprintCommandName = "SuperPioneer.SuperSprint";
 	bool isHost;
+	bool isDestroyed = false;
 
 	RCO* GetRCO();
 	AFGCharacterPlayer* GetPlayer();
 	UFGCharacterMovementComponent* GetPlayerMovementComponent();
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason);
 
 	// Sprinting
 

@@ -16,6 +16,7 @@ private:
 	// Dummy property required for RCO to function, do not remove
 	UPROPERTY(Replicated)
 	bool bDummy = true;
+
 	UPROPERTY(Replicated)
 	bool fallDamageDisabled = true;
 

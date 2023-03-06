@@ -12,7 +12,7 @@ public:
 
 private:
 
-	FName SPMovementComponentName;
+	const FName SPMovementComponentName = FName(TEXT("SuperPioneer.MovementComponent"));
 	USuperPioneerMovementComponent* localSPMovementComponent;
 
 	void RegisterHooks();

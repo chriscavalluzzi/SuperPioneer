@@ -7,7 +7,6 @@
 #include "FGCharacterMovementComponent.h"
 
 void FSuperPioneerModule::StartupModule() {
-	SPMovementComponentName = FName(TEXT("SuperPioneer.MovementComponent"));
 	#if !WITH_EDITOR
 	RegisterHooks();
 	#endif
@@ -28,21 +27,20 @@ void FSuperPioneerModule::RegisterHooks() {
 
 	SUBSCRIBE_METHOD_VIRTUAL(AFGGameMode::PostLogin, exampleGameMode, [this](auto& scope, AFGGameMode* gm, APlayerController* pc) {
 		if (gm->HasAuthority() && !gm->IsMainMenuGameMode()) {
+			// This machine is the host, register Remote Call Object
 			UE_LOG(LogTemp, Warning, TEXT("[SP] Logged in as host, registering Remote Call Object"))
 			gm->RegisterRemoteCallObjectClass(USuperPioneerRemoteCallObject::StaticClass());
 		}
 	});
-
-
-	AFGCharacterPlayer* examplePlayerCharacter = GetMutableDefault<AFGCharacterPlayer>();
-
 	SUBSCRIBE_METHOD_AFTER(UConfigManager::MarkConfigurationDirty, [this](UConfigManager* self, const FConfigId& ConfigId) {
 		if (ConfigId == FConfigId{ "SuperPioneer", "" } && IsValid(localSPMovementComponent)) {
+			// The user config has been updated, reload it
 			UE_LOG(LogTemp, Warning, TEXT("[SP] Config marked dirty, reloading...."))
 			localSPMovementComponent->ReloadConfig();
 		}
 	})
 
+	AFGCharacterPlayer* examplePlayerCharacter = GetMutableDefault<AFGCharacterPlayer>();
 
 	SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterPlayer::SetupPlayerInputComponent, examplePlayerCharacter, [this](auto& scope, AFGCharacterPlayer* self, UInputComponent* PlayerInputComponent) {
 		USuperPioneerMovementComponent* component = GetMovementComponent(self);
@@ -66,22 +64,6 @@ void FSuperPioneerModule::RegisterHooks() {
 			}
 		}
 	});
-
-	/*SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterPlayer::SprintPressed, examplePlayerCharacter, [this](auto& scope, AFGCharacterPlayer* self) {
-		UE_LOG(LogTemp, Warning, TEXT("[SP] Sprinting"))
-		this->SetPlayerSprintSpeed(self, this->defaultMaxSprintSpeed);
-		this->sprintDuration = 0.0;
-	});*/
-	/*SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterPlayer::SprintReleased, examplePlayerCharacter, [this](auto& scope, AFGCharacterPlayer* self) {
-		UE_LOG(LogTemp, Warning, TEXT("[SP] Stopping Sprinting"))
-		this->SetPlayerSprintSpeed(self, this->defaultMaxSprintSpeed);
-	});*/
-	/*SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterPlayer::Tick, examplePlayerCharacter, [this](auto& scope, AFGCharacterPlayer* self, float deltaTime) {
-		if (self->IsLocallyControlled() && self == this->localPlayer && IsValid(SPMovementComponent)) {
-			SPMovementComponent->Tick(deltaTime);
-		}
-	});*/
-
 	SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterPlayer::Jump, examplePlayerCharacter, [this](auto& scope, AFGCharacterPlayer* self) {
 		USuperPioneerMovementComponent* component = GetMovementComponent(self);
 		if (component) {
@@ -111,6 +93,7 @@ void FSuperPioneerModule::RegisterHooks() {
 			}
 		}
 	});
+
 }
 
 IMPLEMENT_GAME_MODULE(FSuperPioneerModule, SuperPioneer);
