@@ -1,17 +1,27 @@
-# SuperPioneer
+<p align="center">
+  <img src="/Media/icon.jpg" style="width:360px;height:360px;" />
+</p>
+
+# Super Pioneer
 A super-powered player movement mod for Satisfactory. Sprint at the speed of sound and jump over mountains!
 
 ## Features
-#### 🏃‍♀️ Super Sprint
+### 🏃‍♀️ Super Sprint
 Hold down the Super Sprint key (Caps Lock by default) to sprint _REAL_ fast.
 
-#### 🦘 Super Jump
+![](/Media/sprint.gif)
+
+### 🦘 Super Jump
 Hold down the jump button to charge your jump, then release it to jump super high!
 
-#### 🔧 Customization
+![](/Media/jump.gif)
+
+### 🔧 Customization
 These features can be heavily customized (or disabled) from the in-game menu: Pause Menu → Mod Configs → SuperPioneer
 
-#### 🌐 Multiplayer
+<img src="/Media/config.png" style="width:430px;height:360px;" />
+
+### 🌐 Multiplayer
 Multiplayer sessions are supported. Movement and animations look natural, and each player can have their own settings.
 
 ## Requirements
