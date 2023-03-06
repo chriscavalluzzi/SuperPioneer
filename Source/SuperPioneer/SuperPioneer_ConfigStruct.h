@@ -27,6 +27,12 @@ public:
     float superSprintMaxSpeed;
 
     UPROPERTY(BlueprintReadWrite)
+    float superSprintAccelerationEasing;
+
+    UPROPERTY(BlueprintReadWrite)
+    float superSprintAccelerationMultiplier;
+
+    UPROPERTY(BlueprintReadWrite)
     FSuperPioneer_ConfigStruct_superSprint_keybindHint keybindHint;
 };
 

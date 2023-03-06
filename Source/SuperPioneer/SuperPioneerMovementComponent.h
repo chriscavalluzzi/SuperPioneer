@@ -43,6 +43,8 @@ private:
 
 	bool config_superSprintEnabled;
 	float config_superSprintMaxSpeed;
+	float config_superSprintAccelerationEasing;
+	float config_superSprintAccelerationMultiplier;
 
 	bool isSuperSprintPressed;
 	bool isNormalSprintPressed;

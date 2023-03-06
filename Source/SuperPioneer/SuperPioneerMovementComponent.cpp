@@ -49,6 +49,8 @@ void USuperPioneerMovementComponent::ReloadConfig() {
 
 	config_superSprintEnabled = SPConfig.superSprint.superSprintEnabled;
 	config_superSprintMaxSpeed = SPConfig.superSprint.superSprintMaxSpeed;
+	config_superSprintAccelerationEasing = SPConfig.superSprint.superSprintAccelerationEasing;
+	config_superSprintAccelerationMultiplier = SPConfig.superSprint.superSprintAccelerationMultiplier;
 
 	config_superJumpChargingEnabled = SPConfig.superJumpCharging.jumpChargingEnabled;
 	config_superJumpHoldMultiplierMax = SPConfig.superJumpCharging.superJumpHoldMultiplierMax;
@@ -194,7 +196,7 @@ void USuperPioneerMovementComponent::ResetSprintToDefaults() {
 }
 
 float USuperPioneerMovementComponent::CalculateSprintSpeed(float duration) {
-	return std::min(float((1 + (2.0 * pow(duration, 2))) * defaultMaxSprintSpeed), config_superSprintMaxSpeed);
+	return std::min(float((1 + (config_superSprintAccelerationMultiplier * pow(duration, config_superSprintAccelerationEasing))) * defaultMaxSprintSpeed), config_superSprintMaxSpeed);
 }
 
 void USuperPioneerMovementComponent::SetPlayerSprintSpeed(float newSprintSpeed) {
