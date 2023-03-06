@@ -27,6 +27,9 @@ public:
 	void ServerSetSprintSpeed(AFGCharacterPlayer* player, float newMaxSprintSpeed);
 
 	UFUNCTION(Server, Reliable)
+	void ServerSetMaxStepHeight(AFGCharacterPlayer* player, float newMaxStepHeight);
+
+	UFUNCTION(Server, Reliable)
 	void ServerSetJumpZVelocity(AFGCharacterPlayer* player, float newZVelocity);
 
 	UFUNCTION(Server, Reliable)

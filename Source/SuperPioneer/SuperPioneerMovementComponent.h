@@ -45,6 +45,7 @@ private:
 	float config_superSprintMaxSpeed;
 	float config_superSprintAccelerationEasing;
 	float config_superSprintAccelerationMultiplier;
+	float config_superSprintMaxStepHeight;
 
 	bool isSuperSprintPressed;
 	bool isNormalSprintPressed;
@@ -53,6 +54,7 @@ private:
 	bool eligibleForSprintResume;
 	float sprintDuration;
 	float defaultMaxSprintSpeed;
+	float defaultMaxStepHeight;
 
 	void SuperSprintPressed();
 	void SuperSprintReleased();
@@ -63,7 +65,9 @@ private:
 	void SprintTick(float deltaTime);
 	void ResetSprintToDefaults();
 	float CalculateSprintSpeed(float duration);
+	float CalculateMaxStepHeight(float duration);
 	void SetPlayerSprintSpeed(float newSprintSpeed);
+	void SetPlayerMaxStepHeight(float newMaxStepHeight);
 	float GetPlayerCurrentSprintSpeed();
 	bool GetIsPlayerSprinting();
 	float CalculateCurrentSpeedPercentOfMax();

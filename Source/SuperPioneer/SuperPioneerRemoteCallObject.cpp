@@ -23,6 +23,13 @@ void USuperPioneerRemoteCallObject::ServerSetSprintSpeed_Implementation(AFGChara
 	}
 }
 
+void USuperPioneerRemoteCallObject::ServerSetMaxStepHeight_Implementation(AFGCharacterPlayer* player, float newMaxStepHeight) {
+	UFGCharacterMovementComponent* component = GetMovementComponent(player);
+	if (component) {
+		component->MaxStepHeight = newMaxStepHeight;
+	}
+}
+
 void USuperPioneerRemoteCallObject::ServerSetJumpZVelocity_Implementation(AFGCharacterPlayer* player, float newZVelocity) {
 	UFGCharacterMovementComponent* component = GetMovementComponent(player);
 	if (component) {

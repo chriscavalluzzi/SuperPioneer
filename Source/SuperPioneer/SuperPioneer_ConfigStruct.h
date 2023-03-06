@@ -8,13 +8,6 @@ struct FSuperPioneer_ConfigStruct_superSprint;
 struct FSuperPioneer_ConfigStruct_superJumpCharging;
 struct FSuperPioneer_ConfigStruct_superJumpModifications;
 struct FSuperPioneer_ConfigStruct_other;
-struct FSuperPioneer_ConfigStruct_superSprint_keybindHint;
-
-USTRUCT(BlueprintType)
-struct FSuperPioneer_ConfigStruct_superSprint_keybindHint {
-    GENERATED_BODY()
-public:
-};
 
 USTRUCT(BlueprintType)
 struct FSuperPioneer_ConfigStruct_superSprint {
@@ -33,7 +26,7 @@ public:
     float superSprintAccelerationMultiplier;
 
     UPROPERTY(BlueprintReadWrite)
-    FSuperPioneer_ConfigStruct_superSprint_keybindHint keybindHint;
+    float superSprintMaxStepHeight;
 };
 
 USTRUCT(BlueprintType)

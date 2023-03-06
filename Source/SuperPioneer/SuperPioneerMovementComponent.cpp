@@ -32,6 +32,7 @@ void USuperPioneerMovementComponent::Setup(AFGCharacterPlayer* _localPlayer, UIn
 	ReloadConfig();
 
 	defaultMaxSprintSpeed = GetPlayerMovementComponent()->mMaxSprintSpeed;
+	defaultMaxStepHeight = GetPlayerMovementComponent()->MaxStepHeight;
 	defaultJumpZVelocity = GetPlayerMovementComponent()->JumpZVelocity;
 	defaultAirControl = GetPlayerMovementComponent()->AirControl;
 	defaultGravityScale = GetPlayerMovementComponent()->GravityScale;
@@ -51,6 +52,7 @@ void USuperPioneerMovementComponent::ReloadConfig() {
 	config_superSprintMaxSpeed = SPConfig.superSprint.superSprintMaxSpeed;
 	config_superSprintAccelerationEasing = SPConfig.superSprint.superSprintAccelerationEasing;
 	config_superSprintAccelerationMultiplier = SPConfig.superSprint.superSprintAccelerationMultiplier;
+	config_superSprintMaxStepHeight = SPConfig.superSprint.superSprintMaxStepHeight * 100.0f;
 
 	config_superJumpChargingEnabled = SPConfig.superJumpCharging.jumpChargingEnabled;
 	config_superJumpHoldMultiplierMax = SPConfig.superJumpCharging.superJumpHoldMultiplierMax;
@@ -170,6 +172,7 @@ void USuperPioneerMovementComponent::SprintTick(float deltaTime) {
 	if (GetIsPlayerSprinting() && isSuperSprintPressed) {
 		sprintDuration += deltaTime;
 		SetPlayerSprintSpeed(CalculateSprintSpeed(sprintDuration));
+		SetPlayerMaxStepHeight(CalculateMaxStepHeight(sprintDuration));
 	}
 	if (!isFalling && GetPlayerMovementComponent()->IsFalling()) {
 		isFalling = true;
@@ -179,6 +182,7 @@ void USuperPioneerMovementComponent::SprintTick(float deltaTime) {
 
 void USuperPioneerMovementComponent::ResetSprintToDefaults() {
 	SetPlayerSprintSpeed(defaultMaxSprintSpeed);
+	SetPlayerMaxStepHeight(defaultMaxStepHeight);
 	sprintDuration = 0.0;
 	if (GetPlayerMovementComponent()->mHoldToSprint) {
 		// Hold to sprint enabled
@@ -199,12 +203,25 @@ float USuperPioneerMovementComponent::CalculateSprintSpeed(float duration) {
 	return std::min(float((1 + (config_superSprintAccelerationMultiplier * pow(duration, config_superSprintAccelerationEasing))) * defaultMaxSprintSpeed), config_superSprintMaxSpeed);
 }
 
+float USuperPioneerMovementComponent::CalculateMaxStepHeight(float duration) {
+	return lerp(defaultMaxStepHeight, config_superSprintMaxStepHeight, CalculateCurrentSpeedPercentOfMax());
+}
+
 void USuperPioneerMovementComponent::SetPlayerSprintSpeed(float newSprintSpeed) {
 	GetPlayerMovementComponent()->mMaxSprintSpeed = newSprintSpeed;
 
 	RCO* rco = GetRCO();
 	if (rco && !isHost) {
 		rco->ServerSetSprintSpeed(GetPlayer(), newSprintSpeed);
+	}
+}
+
+void USuperPioneerMovementComponent::SetPlayerMaxStepHeight(float newMaxStepHeight) {
+	GetPlayerMovementComponent()->MaxStepHeight = newMaxStepHeight;
+
+	RCO* rco = GetRCO();
+	if (rco && !isHost) {
+		rco->ServerSetMaxStepHeight(GetPlayer(), newMaxStepHeight);
 	}
 }
 
