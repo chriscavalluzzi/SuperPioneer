@@ -46,34 +46,38 @@ void USuperPioneerMovementComponent::Setup(AFGCharacterPlayer* _localPlayer, UIn
 }
 
 void USuperPioneerMovementComponent::ReloadConfig() {
-	FSuperPioneer_ConfigStruct SPConfig = FSuperPioneer_ConfigStruct::GetActiveConfig();
+	if (IsValid(GetPlayer())) {
 
-	config_superSprintEnabled = SPConfig.superSprint.superSprintEnabled;
-	config_superSprintMaxSpeed = SPConfig.superSprint.superSprintMaxSpeed;
-	config_superSprintAccelerationEasing = SPConfig.superSprint.superSprintAccelerationEasing;
-	config_superSprintAccelerationMultiplier = SPConfig.superSprint.superSprintAccelerationMultiplier;
-	config_superSprintMaxStepHeight = SPConfig.superSprint.superSprintMaxStepHeight * 100.0f;
+		FSuperPioneer_ConfigStruct SPConfig = FSuperPioneer_ConfigStruct::GetActiveConfig();
 
-	config_superJumpChargingEnabled = SPConfig.superJumpCharging.jumpChargingEnabled;
-	config_superJumpHoldMultiplierMax = SPConfig.superJumpCharging.superJumpHoldMultiplierMax;
-	config_superJumpHoldTimeMin = SPConfig.superJumpCharging.superJumpHoldTimeMin;
-	config_superJumpHoldTimeMax = std::max(SPConfig.superJumpCharging.superJumpHoldTimeMax, config_superJumpHoldTimeMin);
+		config_superSprintEnabled = SPConfig.superSprint.superSprintEnabled;
+		config_superSprintMaxSpeed = SPConfig.superSprint.superSprintMaxSpeed;
+		config_superSprintAccelerationEasing = SPConfig.superSprint.superSprintAccelerationEasing;
+		config_superSprintAccelerationMultiplier = SPConfig.superSprint.superSprintAccelerationMultiplier;
+		config_superSprintMaxStepHeight = SPConfig.superSprint.superSprintMaxStepHeight * 100.0f;
 
-	config_superJumpModificationsEnabled = SPConfig.superJumpModifications.jumpModificationsEnabled;
-	config_superJumpSpeedMultiplierMax = SPConfig.superJumpModifications.superJumpSpeedMultiplierMax;
-	config_maxAirControl = SPConfig.superJumpModifications.maxAirControl;
-	config_gravityScalingMultiplier = SPConfig.superJumpModifications.gravityScalingMultiplier;
-	config_jumpMultiplierPerGravityScale = SPConfig.superJumpModifications.jumpMultiplierPerGravityScale;
+		config_superJumpChargingEnabled = SPConfig.superJumpCharging.jumpChargingEnabled;
+		config_superJumpHoldMultiplierMax = SPConfig.superJumpCharging.superJumpHoldMultiplierMax;
+		config_superJumpHoldTimeMin = SPConfig.superJumpCharging.superJumpHoldTimeMin;
+		config_superJumpHoldTimeMax = std::max(SPConfig.superJumpCharging.superJumpHoldTimeMax, config_superJumpHoldTimeMin);
 
-	config_disableFallDamage = SPConfig.other.disableFallDamage;
+		config_superJumpModificationsEnabled = SPConfig.superJumpModifications.jumpModificationsEnabled;
+		config_superJumpSpeedMultiplierMax = SPConfig.superJumpModifications.superJumpSpeedMultiplierMax;
+		config_maxAirControl = SPConfig.superJumpModifications.maxAirControl;
+		config_gravityScalingMultiplier = SPConfig.superJumpModifications.gravityScalingMultiplier;
+		config_jumpMultiplierPerGravityScale = SPConfig.superJumpModifications.jumpMultiplierPerGravityScale;
 
-	if (!config_superSprintEnabled) {
-		SetPlayerSprintSpeed(defaultMaxSprintSpeed);
-	}
+		config_disableFallDamage = SPConfig.other.disableFallDamage;
 
-	RCO* rco = GetRCO();
-	if (rco) {
-		rco->ServerSetFallDamageDisabled(config_disableFallDamage);
+		if (!config_superSprintEnabled) {
+			SetPlayerSprintSpeed(defaultMaxSprintSpeed);
+		}
+
+		RCO* rco = GetRCO();
+		if (rco) {
+			rco->ServerSetFallDamageDisabled(config_disableFallDamage);
+		}
+
 	}
 }
 
@@ -88,14 +92,7 @@ RCO* USuperPioneerMovementComponent::GetRCO() {
 }
 
 AFGCharacterPlayer* USuperPioneerMovementComponent::GetPlayer() {
-	// If the else block never triggers, this can probably all be replaced with: return static_cast<AFGCharacterPlayer*>(GetOwner())
-	AFGCharacterPlayer* playerPtr = dynamic_cast<AFGCharacterPlayer*>(GetOwner());
-	if (playerPtr) {
-		return playerPtr;
-	} else {
-		UE_LOG(LogTemp, Error, TEXT("[SP!] Get owner cast failed!"))
-		return playerPtr;
-	}
+	return dynamic_cast<AFGCharacterPlayer*>(GetOwner());
 }
 
 UFGCharacterMovementComponent* USuperPioneerMovementComponent::GetPlayerMovementComponent() {
