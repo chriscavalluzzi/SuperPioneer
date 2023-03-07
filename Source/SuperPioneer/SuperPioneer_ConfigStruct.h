@@ -26,6 +26,9 @@ public:
     float superSprintAccelerationMultiplier;
 
     UPROPERTY(BlueprintReadWrite)
+    float superSprintGroundFriction;
+
+    UPROPERTY(BlueprintReadWrite)
     float superSprintMaxStepHeight;
 };
 

@@ -30,6 +30,13 @@ void USuperPioneerRemoteCallObject::ServerSetMaxStepHeight_Implementation(AFGCha
 	}
 }
 
+void USuperPioneerRemoteCallObject::ServerSetDeceleration_Implementation(AFGCharacterPlayer* player, float newGroundFriction) {
+	UFGCharacterMovementComponent* component = GetMovementComponent(player);
+	if (component) {
+		component->GroundFriction = newGroundFriction;
+	}
+}
+
 void USuperPioneerRemoteCallObject::ServerSetJumpZVelocity_Implementation(AFGCharacterPlayer* player, float newZVelocity) {
 	UFGCharacterMovementComponent* component = GetMovementComponent(player);
 	if (component) {

@@ -28,13 +28,14 @@ void USuperPioneerMovementComponent::Setup(AFGCharacterPlayer* _localPlayer, UIn
 	this->localPlayer = _localPlayer;
 	this->isHost = _isHost;
 
-	ReloadConfig();
-
 	defaultMaxSprintSpeed = GetPlayerMovementComponent()->mMaxSprintSpeed;
 	defaultMaxStepHeight = GetPlayerMovementComponent()->MaxStepHeight;
+	defaultGroundFriction = GetPlayerMovementComponent()->GroundFriction;
 	defaultJumpZVelocity = GetPlayerMovementComponent()->JumpZVelocity;
 	defaultAirControl = GetPlayerMovementComponent()->AirControl;
 	defaultGravityScale = GetPlayerMovementComponent()->GravityScale;
+
+	ReloadConfig();
 
   _inputComponent->BindAction(superSprintCommandName, EInputEvent::IE_Pressed, this, &USuperPioneerMovementComponent::SuperSprintPressed);
 	_inputComponent->BindAction(superSprintCommandName, EInputEvent::IE_Released, this, &USuperPioneerMovementComponent::SuperSprintReleased);
@@ -53,6 +54,7 @@ void USuperPioneerMovementComponent::ReloadConfig() {
 		config_superSprintMaxSpeed = SPConfig.superSprint.superSprintMaxSpeed;
 		config_superSprintAccelerationEasing = SPConfig.superSprint.superSprintAccelerationEasing;
 		config_superSprintAccelerationMultiplier = SPConfig.superSprint.superSprintAccelerationMultiplier;
+		config_superSprintGroundFriction = SPConfig.superSprint.superSprintGroundFriction;
 		config_superSprintMaxStepHeight = SPConfig.superSprint.superSprintMaxStepHeight * 100.0f;
 
 		config_superJumpChargingEnabled = SPConfig.superJumpCharging.jumpChargingEnabled;
@@ -71,6 +73,9 @@ void USuperPioneerMovementComponent::ReloadConfig() {
 
 		if (!config_superSprintEnabled) {
 			SetPlayerSprintSpeed(defaultMaxSprintSpeed);
+			SetPlayerDeceleration(defaultGroundFriction);
+		} else {
+			SetPlayerDeceleration(config_superSprintGroundFriction);
 		}
 
 		RCO* rco = GetRCO();
@@ -107,6 +112,7 @@ void USuperPioneerMovementComponent::EndPlay(const EEndPlayReason::Type EndPlayR
 
 void USuperPioneerMovementComponent::SuperSprintPressed() {
 	if (config_superSprintEnabled) {
+		SetPlayerDeceleration(config_superSprintGroundFriction);
 		isSuperSprintPressed = true;
 		if (eligibleForSprintResume) {
 			return;
@@ -220,6 +226,15 @@ void USuperPioneerMovementComponent::SetPlayerMaxStepHeight(float newMaxStepHeig
 	RCO* rco = GetRCO();
 	if (rco && !isHost) {
 		rco->ServerSetMaxStepHeight(GetPlayer(), newMaxStepHeight);
+	}
+}
+
+void USuperPioneerMovementComponent::SetPlayerDeceleration(float newGroundFriction) {
+	GetPlayerMovementComponent()->GroundFriction = newGroundFriction;
+
+	RCO* rco = GetRCO();
+	if (rco && !isHost) {
+		rco->ServerSetDeceleration(GetPlayer(), newGroundFriction);
 	}
 }
 
