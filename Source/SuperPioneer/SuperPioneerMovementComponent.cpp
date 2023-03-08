@@ -108,8 +108,14 @@ void USuperPioneerMovementComponent::CheckForActionRebind() {
 }
 
 RCO* USuperPioneerMovementComponent::GetRCO() {
-	AFGPlayerController* controller = Cast<AFGPlayerController>(GetPlayer()->Controller);
-	return (RCO*)controller->GetRemoteCallObjectOfClass(RCO::StaticClass());
+	AController* controller = GetPlayer()->Controller;
+	if (controller) {
+		AFGPlayerController* playerController = Cast<AFGPlayerController>(controller);
+		if (playerController) {
+			return (RCO*)playerController->GetRemoteCallObjectOfClass(RCO::StaticClass());
+		}
+	}
+	return nullptr;
 }
 
 AFGCharacterPlayer* USuperPioneerMovementComponent::GetPlayer() {
