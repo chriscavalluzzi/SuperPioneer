@@ -32,10 +32,14 @@ private:
 	// General
 
 	AFGCharacterPlayer* localPlayer;
+	UInputComponent* inputComponent;
 	const char* superSprintCommandName = "SuperPioneer.SuperSprint";
 	bool isHost;
 	bool isDestroyed = false;
+	bool needToRebindActions = false;
 
+	void BindActions();
+	void CheckForActionRebind();
 	RCO* GetRCO();
 	AFGCharacterPlayer* GetPlayer();
 	UFGCharacterMovementComponent* GetPlayerMovementComponent();

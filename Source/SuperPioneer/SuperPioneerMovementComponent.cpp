@@ -26,6 +26,7 @@ void USuperPioneerMovementComponent::Setup(AFGCharacterPlayer* _localPlayer, UIn
 	UE_LOG(LogTemp,Warning,TEXT("[SP] Starting SP Movement Component Setup (isHost: %s)"), (_isHost ? TEXT("true") : TEXT("false")))
 
 	this->localPlayer = _localPlayer;
+	this->inputComponent = _inputComponent;
 	this->isHost = _isHost;
 
 	defaultMaxSprintSpeed = GetPlayerMovementComponent()->mMaxSprintSpeed;
@@ -37,12 +38,16 @@ void USuperPioneerMovementComponent::Setup(AFGCharacterPlayer* _localPlayer, UIn
 
 	ReloadConfig();
 
-  _inputComponent->BindAction(superSprintCommandName, EInputEvent::IE_Pressed, this, &USuperPioneerMovementComponent::SuperSprintPressed);
-	_inputComponent->BindAction(superSprintCommandName, EInputEvent::IE_Released, this, &USuperPioneerMovementComponent::SuperSprintReleased);
-	_inputComponent->BindAction("Jump_Drift", EInputEvent::IE_Pressed, this, &USuperPioneerMovementComponent::JumpPressed);
-	_inputComponent->BindAction("Jump_Drift", EInputEvent::IE_Released, this, &USuperPioneerMovementComponent::JumpReleased);
-	_inputComponent->BindAction("ToggleSprint", EInputEvent::IE_Pressed, this, &USuperPioneerMovementComponent::NormalSprintPressed);
-	_inputComponent->BindAction("ToggleSprint", EInputEvent::IE_Released, this, &USuperPioneerMovementComponent::NormalSprintReleased);
+	BindActions();
+}
+
+void USuperPioneerMovementComponent::BindActions() {
+	inputComponent->BindAction(superSprintCommandName, EInputEvent::IE_Pressed, this, &USuperPioneerMovementComponent::SuperSprintPressed);
+	inputComponent->BindAction(superSprintCommandName, EInputEvent::IE_Released, this, &USuperPioneerMovementComponent::SuperSprintReleased);
+	inputComponent->BindAction("Jump_Drift", EInputEvent::IE_Pressed, this, &USuperPioneerMovementComponent::JumpPressed);
+	inputComponent->BindAction("Jump_Drift", EInputEvent::IE_Released, this, &USuperPioneerMovementComponent::JumpReleased);
+	inputComponent->BindAction("ToggleSprint", EInputEvent::IE_Pressed, this, &USuperPioneerMovementComponent::NormalSprintPressed);
+	inputComponent->BindAction("ToggleSprint", EInputEvent::IE_Released, this, &USuperPioneerMovementComponent::NormalSprintReleased);
 }
 
 void USuperPioneerMovementComponent::ReloadConfig() {
@@ -87,8 +92,19 @@ void USuperPioneerMovementComponent::ReloadConfig() {
 }
 
 void USuperPioneerMovementComponent::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) {
+	CheckForActionRebind();
 	if (config_superSprintEnabled) { SprintTick(DeltaTime); }
 	if (config_superJumpChargingEnabled) { JumpTick(DeltaTime); }
+}
+
+void USuperPioneerMovementComponent::CheckForActionRebind() {
+	if (!needToRebindActions && (!IsValid(inputComponent) || inputComponent != GetPlayer()->InputComponent)) {
+		needToRebindActions = true;
+	} else if (needToRebindActions && IsValid(GetPlayer()->InputComponent)) {
+		inputComponent = GetPlayer()->InputComponent;
+		BindActions();
+		needToRebindActions = false;
+	}
 }
 
 RCO* USuperPioneerMovementComponent::GetRCO() {
