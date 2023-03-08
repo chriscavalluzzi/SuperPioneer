@@ -17,7 +17,7 @@ public:
     bool superSprintEnabled;
 
     UPROPERTY(BlueprintReadWrite)
-    float superSprintMaxSpeed;
+    float superSprintMaxSpeedMps;
 
     UPROPERTY(BlueprintReadWrite)
     float superSprintAccelerationEasing;

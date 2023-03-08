@@ -56,7 +56,7 @@ void USuperPioneerMovementComponent::ReloadConfig() {
 		FSuperPioneer_ConfigStruct SPConfig = FSuperPioneer_ConfigStruct::GetActiveConfig();
 
 		config_superSprintEnabled = SPConfig.superSprint.superSprintEnabled;
-		config_superSprintMaxSpeed = SPConfig.superSprint.superSprintMaxSpeed;
+		config_superSprintMaxSpeed = SPConfig.superSprint.superSprintMaxSpeedMps * 100.f;
 		config_superSprintAccelerationEasing = SPConfig.superSprint.superSprintAccelerationEasing;
 		config_superSprintAccelerationMultiplier = SPConfig.superSprint.superSprintAccelerationMultiplier;
 		config_superSprintGroundFriction = SPConfig.superSprint.superSprintGroundFriction;
