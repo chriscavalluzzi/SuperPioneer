@@ -10,6 +10,10 @@
 USuperPioneerMovementComponent::USuperPioneerMovementComponent() {
   UE_LOG(LogTemp, Warning, TEXT("[SP] Starting SP Movement Component Construction"))
 	PrimaryComponentTick.bCanEverTick = true;
+	Reset();
+};
+
+void USuperPioneerMovementComponent::Reset() {
 	isSuperSprintPressed = false;
 	isNormalSprintPressed = false;
 	wasSprintingBeforeSuperSprint = false;
@@ -20,7 +24,7 @@ USuperPioneerMovementComponent::USuperPioneerMovementComponent() {
 	isFalling = false;
 	jumpHoldDuration = 0.0;
 	sprintDuration = 0.0;
-};
+}
 
 void USuperPioneerMovementComponent::Setup(AFGCharacterPlayer* _localPlayer, UInputComponent* _inputComponent, bool _isHost) {
 	UE_LOG(LogTemp,Warning,TEXT("[SP] Starting SP Movement Component Setup (isHost: %s)"), (_isHost ? TEXT("true") : TEXT("false")))
@@ -100,6 +104,7 @@ void USuperPioneerMovementComponent::TickComponent(float DeltaTime, enum ELevelT
 void USuperPioneerMovementComponent::CheckForActionRebind() {
 	if (!needToRebindActions && (!IsValid(inputComponent) || inputComponent != GetPlayer()->InputComponent)) {
 		needToRebindActions = true;
+		Reset();
 	} else if (needToRebindActions && IsValid(GetPlayer()->InputComponent)) {
 		inputComponent = GetPlayer()->InputComponent;
 		BindActions();
@@ -292,12 +297,14 @@ void USuperPioneerMovementComponent::JumpPressed() {
 	isJumpPressed = true;
 	isJumpPrimed = false;
 	jumpHoldDuration = 0.0;
+	GetPlayer()->Jump();
 }
 
 void USuperPioneerMovementComponent::JumpReleased() {
 	if (config_superJumpChargingEnabled && !GetPlayerMovementComponent()->IsSwimming() && CheckIfJumpSafe()) {
 		ApplyJumpModifiers();
 		isJumpPrimed = true;
+		GetPlayer()->Jump();
 		Invoke_Jump();
 	} else {
 		isJumpPrimed = false;

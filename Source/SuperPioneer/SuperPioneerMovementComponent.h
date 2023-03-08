@@ -38,6 +38,7 @@ private:
 	bool isDestroyed = false;
 	bool needToRebindActions = false;
 
+	void Reset();
 	void BindActions();
 	void CheckForActionRebind();
 	RCO* GetRCO();
