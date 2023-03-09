@@ -200,7 +200,7 @@ void USuperPioneerMovementComponent::OnFalling() {
 }
 
 void USuperPioneerMovementComponent::SprintTick(float deltaTime) {
-	if (GetIsPlayerSprinting() && isSuperSprintPressed) {
+	if (isSuperSprintPressed) {
 		sprintDuration += deltaTime;
 		SetPlayerSprintSpeed(CalculateSprintSpeed(sprintDuration));
 		SetPlayerMaxStepHeight(CalculateMaxStepHeight(sprintDuration));
@@ -340,6 +340,8 @@ void USuperPioneerMovementComponent::OnLanded() {
 	SetPlayerGravityScale(defaultGravityScale);
 	if (eligibleForSprintResume && isSuperSprintPressed) {
 		// Allow sprint to continue
+	}	else if (isSuperSprintPressed) {
+		SuperSprintPressed();
 	} else {
 		ResetSprintToDefaults();
 	}
