@@ -16,9 +16,11 @@ USuperPioneerMovementComponent::USuperPioneerMovementComponent() {
 void USuperPioneerMovementComponent::Reset() {
 	isSuperSprintPressed = false;
 	isNormalSprintPressed = false;
+	isSuperSprinting = false;
 	wasSprintingBeforeSuperSprint = false;
-	wasHoldingToSprintBeforeSuperSprint = false;
+	wasNormalSprintingWhenGrounded = false;
 	eligibleForSprintResume = false;
+	needToRestartSuperSprint = false;
 	isJumpPressed = false;
 	isJumpPrimed = false;
 	isFalling = false;
@@ -139,19 +141,12 @@ void USuperPioneerMovementComponent::EndPlay(const EEndPlayReason::Type EndPlayR
 
 void USuperPioneerMovementComponent::SuperSprintPressed() {
 	if (config_superSprintEnabled) {
-		SetPlayerDeceleration(config_superSprintGroundFriction);
 		isSuperSprintPressed = true;
 		if (eligibleForSprintResume) {
 			return;
 		}
-		if (GetIsPlayerSprinting()) {
-			wasSprintingBeforeSuperSprint = true;
-			wasHoldingToSprintBeforeSuperSprint = GetPlayerMovementComponent()->mHoldToSprint;
-		}
-		else {
-			Invoke_SprintPressed();
-			wasSprintingBeforeSuperSprint = false;
-			wasHoldingToSprintBeforeSuperSprint = GetPlayerMovementComponent()->mHoldToSprint;
+		if (!isFalling) {
+			StartSuperSprint();
 		}
 	}
 }
@@ -160,17 +155,53 @@ void USuperPioneerMovementComponent::SuperSprintReleased() {
 	if (config_superSprintEnabled) {
 		isSuperSprintPressed = false;
 		if (!GetPlayerMovementComponent()->IsFalling()) {
-			ResetSprintToDefaults();
+			EndSuperSprint();
 		}
 	}
 }
 
 void USuperPioneerMovementComponent::NormalSprintPressed() {
 	isNormalSprintPressed = true;
+	if (!GetIsHoldToSprintEnabled() && isSuperSprinting && isSuperSprintPressed) {
+		needToRestartSuperSprint = true;
+	}
 }
 
 void USuperPioneerMovementComponent::NormalSprintReleased() {
 	isNormalSprintPressed = false;
+	if (GetIsHoldToSprintEnabled() && isSuperSprinting && isSuperSprintPressed) {
+		needToRestartSuperSprint = true;
+	}
+}
+
+void USuperPioneerMovementComponent::StartSuperSprint() {
+	SetPlayerDeceleration(config_superSprintGroundFriction);
+	if (!isFalling) {
+		wasSprintingBeforeSuperSprint = GetIsPlayerSprinting();
+	}
+	if (!wasSprintingBeforeSuperSprint || GetIsHoldToSprintEnabled()) {
+		Invoke_SprintPressed();
+	}
+	isSuperSprinting = true;
+}
+
+void USuperPioneerMovementComponent::EndSuperSprint() {
+	ResetSprintToDefaults();
+	if (GetIsHoldToSprintEnabled()) {
+		// Hold to sprint enabled
+		if (isNormalSprintPressed) {
+			Invoke_SprintPressed();
+		} else {
+			Invoke_SprintReleased();
+		}
+	}
+	else {
+		// Toggle sprint enabled
+		if (!wasSprintingBeforeSuperSprint) {
+			Invoke_SprintPressed();
+		}
+	}
+	isSuperSprinting = false;
 }
 
 void USuperPioneerMovementComponent::Invoke_SprintPressed() {
@@ -192,14 +223,15 @@ void USuperPioneerMovementComponent::Invoke_SprintReleased() {
 }
 
 void USuperPioneerMovementComponent::OnFalling() {
-	if (isSuperSprintPressed) {
-		eligibleForSprintResume = true;
-	} else {
-		eligibleForSprintResume = false;
-	}
+	isFalling = true;
+	wasSprintingBeforeSuperSprint = wasNormalSprintingWhenGrounded;
+	eligibleForSprintResume = isSuperSprintPressed;
 }
 
 void USuperPioneerMovementComponent::SprintTick(float deltaTime) {
+	if (!isSuperSprinting && !GetPlayerMovementComponent()->IsFalling()) {
+		wasNormalSprintingWhenGrounded = GetIsPlayerSprinting();
+	}
 	if (isSuperSprintPressed) {
 		sprintDuration += deltaTime;
 		SetPlayerSprintSpeed(CalculateSprintSpeed(sprintDuration));
@@ -209,25 +241,16 @@ void USuperPioneerMovementComponent::SprintTick(float deltaTime) {
 		isFalling = true;
 		OnFalling();
 	}
+	if (needToRestartSuperSprint) {
+			Invoke_SprintPressed();
+		needToRestartSuperSprint = false;
+	}
 }
 
 void USuperPioneerMovementComponent::ResetSprintToDefaults() {
 	SetPlayerSprintSpeed(defaultMaxSprintSpeed);
 	SetPlayerMaxStepHeight(defaultMaxStepHeight);
 	sprintDuration = 0.0;
-	if (GetPlayerMovementComponent()->mHoldToSprint) {
-		// Hold to sprint enabled
-		if (isNormalSprintPressed) {
-			Invoke_SprintPressed();
-		} else {
-			Invoke_SprintReleased();
-		}
-	} else {
-		// Toggle sprint enabled
-		if (!wasSprintingBeforeSuperSprint && GetIsPlayerSprinting()) {
-			Invoke_SprintPressed();
-		}
-	}
 }
 
 float USuperPioneerMovementComponent::CalculateSprintSpeed(float duration) {
@@ -271,6 +294,10 @@ float USuperPioneerMovementComponent::GetPlayerCurrentSprintSpeed() {
 
 bool USuperPioneerMovementComponent::GetIsPlayerSprinting() {
 	return GetPlayerMovementComponent()->GetIsSprinting();
+}
+
+bool USuperPioneerMovementComponent::GetIsHoldToSprintEnabled() {
+	return GetPlayerMovementComponent()->mHoldToSprint;
 }
 
 float USuperPioneerMovementComponent::CalculateCurrentSpeedPercentOfMax() {
@@ -321,6 +348,12 @@ void USuperPioneerMovementComponent::ApplyJumpModifiers() {
 	}
 }
 
+void USuperPioneerMovementComponent::ResetJumpModifiers() {
+	SetPlayerJumpZVelocity(defaultJumpZVelocity);
+	SetPlayerAirControl(defaultAirControl);
+	SetPlayerGravityScale(defaultGravityScale);
+}
+
 bool USuperPioneerMovementComponent::CheckIfJumpSafe() {
 	return GetPlayer()->CanJumpInternal_Implementation() && !GetPlayer()->IsMoveInputIgnored();
 }
@@ -335,15 +368,13 @@ void USuperPioneerMovementComponent::Invoke_Jump() {
 }
 
 void USuperPioneerMovementComponent::OnLanded() {
-	SetPlayerJumpZVelocity(defaultJumpZVelocity);
-	SetPlayerAirControl(defaultAirControl);
-	SetPlayerGravityScale(defaultGravityScale);
+	ResetJumpModifiers();
 	if (eligibleForSprintResume && isSuperSprintPressed) {
 		// Allow sprint to continue
 	}	else if (isSuperSprintPressed) {
-		SuperSprintPressed();
+		StartSuperSprint();
 	} else {
-		ResetSprintToDefaults();
+		EndSuperSprint();
 	}
 	eligibleForSprintResume = false;
 	isFalling = false;

@@ -57,9 +57,11 @@ private:
 
 	bool isSuperSprintPressed;
 	bool isNormalSprintPressed;
+	bool isSuperSprinting;
 	bool wasSprintingBeforeSuperSprint;
-	bool wasHoldingToSprintBeforeSuperSprint;
+	bool wasNormalSprintingWhenGrounded;
 	bool eligibleForSprintResume;
+	bool needToRestartSuperSprint;
 	float sprintDuration;
 	float defaultMaxSprintSpeed;
 	float defaultMaxStepHeight;
@@ -69,6 +71,8 @@ private:
 	void SuperSprintReleased();
 	void NormalSprintPressed();
 	void NormalSprintReleased();
+	void StartSuperSprint();
+	void EndSuperSprint();
 	void Invoke_SprintPressed();
 	void Invoke_SprintReleased();
 	void SprintTick(float deltaTime);
@@ -80,6 +84,7 @@ private:
 	void SetPlayerDeceleration(float newGroundFriction);
 	float GetPlayerCurrentSprintSpeed();
 	bool GetIsPlayerSprinting();
+	bool GetIsHoldToSprintEnabled();
 	float CalculateCurrentSpeedPercentOfMax();
 
 	// Jumping
@@ -106,6 +111,7 @@ private:
 	void JumpPressed();
 	void JumpReleased();
 	void ApplyJumpModifiers();
+	void ResetJumpModifiers();
 	bool CheckIfJumpSafe();
 	void Invoke_Jump();
 	void JumpTick(float deltaTime);
