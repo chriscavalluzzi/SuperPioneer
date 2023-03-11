@@ -124,6 +124,19 @@ private:
 	void SetPlayerAirControl(float newAirControl);
 	void SetPlayerGravityScale(float newGravityScale);
 
+	// Ground Slam
+
+	float config_groundSlamMaxAngle;
+	float config_groundSlamInitialVelocity;
+	float config_groundSlamAcceleration;
+
+	bool isGroundSlamming;
+	FVector groundSlamDirection;
+
+	void GroundSlamPressed();
+	bool IsInGroundSlamAngle(FVector angle);
+	void GroundSlamTick(float deltaTime);
+
 	// Other
 	bool config_disableFallDamage;
 

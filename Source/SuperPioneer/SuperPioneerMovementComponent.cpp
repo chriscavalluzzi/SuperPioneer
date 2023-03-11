@@ -24,6 +24,7 @@ void USuperPioneerMovementComponent::Reset() {
 	isJumpPressed = false;
 	isJumpPrimed = false;
 	isFalling = false;
+	isGroundSlamming = false;
 	jumpHoldDuration = 0.0;
 	sprintDuration = 0.0;
 }
@@ -54,6 +55,7 @@ void USuperPioneerMovementComponent::BindActions() {
 	inputComponent->BindAction("Jump_Drift", EInputEvent::IE_Released, this, &USuperPioneerMovementComponent::JumpReleased);
 	inputComponent->BindAction("ToggleSprint", EInputEvent::IE_Pressed, this, &USuperPioneerMovementComponent::NormalSprintPressed);
 	inputComponent->BindAction("ToggleSprint", EInputEvent::IE_Released, this, &USuperPioneerMovementComponent::NormalSprintReleased);
+	inputComponent->BindAction("Crouch", EInputEvent::IE_Pressed, this, &USuperPioneerMovementComponent::GroundSlamPressed);
 }
 
 void USuperPioneerMovementComponent::ReloadConfig() {
@@ -80,6 +82,10 @@ void USuperPioneerMovementComponent::ReloadConfig() {
 		config_jumpMultiplierPerGravityScale = SPConfig.superJumpModifications.jumpMultiplierPerGravityScale;
 		config_swimmingJumpMultiplier = SPConfig.superJumpModifications.swimmingJumpMultiplier;
 
+		config_groundSlamMaxAngle = 55.0f;
+		config_groundSlamInitialVelocity = 100.0f * 100.0f;
+		config_groundSlamAcceleration = 30000.0f * 100.f;
+
 		config_disableFallDamage = SPConfig.other.disableFallDamage;
 
 		if (!config_superSprintEnabled) {
@@ -101,6 +107,7 @@ void USuperPioneerMovementComponent::TickComponent(float DeltaTime, enum ELevelT
 	CheckForActionRebind();
 	if (config_superSprintEnabled) { SprintTick(DeltaTime); }
 	if (config_superJumpChargingEnabled) { JumpTick(DeltaTime); }
+	GroundSlamTick(DeltaTime);
 }
 
 void USuperPioneerMovementComponent::CheckForActionRebind() {
@@ -376,8 +383,12 @@ void USuperPioneerMovementComponent::OnLanded() {
 	} else {
 		EndSuperSprint();
 	}
+	if (isGroundSlamming && !isSuperSprinting) {
+		SetPlayerDeceleration(defaultGroundFriction);
+	}
 	eligibleForSprintResume = false;
 	isFalling = false;
+	isGroundSlamming = false;
 }
 
 void USuperPioneerMovementComponent::JumpTick(float deltaTime) {
@@ -458,4 +469,29 @@ void USuperPioneerMovementComponent::SetPlayerGravityScale(float newGravityScale
 
 float USuperPioneerMovementComponent::lerp(float a, float b, float t) {
 	return a * (1.0 - t) + (b * t);
+}
+
+// Ground Slam
+
+void USuperPioneerMovementComponent::GroundSlamPressed() {
+	FVector v = GetPlayer()->GetCameraComponentForwardVector();
+	if (isFalling) {
+		FVector cameraDirection = GetPlayer()->GetCameraComponentForwardVector();
+		if (IsInGroundSlamAngle(cameraDirection)) {
+			SetPlayerGravityScale(0.0f);
+			groundSlamDirection = cameraDirection;
+			GetPlayerMovementComponent()->Launch(groundSlamDirection * config_groundSlamInitialVelocity);
+			isGroundSlamming = true;
+		}
+	}
+}
+
+bool USuperPioneerMovementComponent::IsInGroundSlamAngle(FVector angle) {
+	return angle.Z < -1.0f + (config_groundSlamMaxAngle / 90.0f);
+}
+
+void USuperPioneerMovementComponent::GroundSlamTick(float deltaTime) {
+	if (isGroundSlamming) {
+		GetPlayerMovementComponent()->AddForce(groundSlamDirection * config_groundSlamAcceleration);
+	}
 }
