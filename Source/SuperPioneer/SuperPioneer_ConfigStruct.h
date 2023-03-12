@@ -7,6 +7,7 @@
 struct FSuperPioneer_ConfigStruct_superSprint;
 struct FSuperPioneer_ConfigStruct_superJumpCharging;
 struct FSuperPioneer_ConfigStruct_superJumpModifications;
+struct FSuperPioneer_ConfigStruct_groundSlam;
 struct FSuperPioneer_ConfigStruct_other;
 
 USTRUCT(BlueprintType)
@@ -38,6 +39,9 @@ struct FSuperPioneer_ConfigStruct_superJumpCharging {
 public:
     UPROPERTY(BlueprintReadWrite)
     bool jumpChargingEnabled;
+
+    UPROPERTY(BlueprintReadWrite)
+    bool jumpChargingUIEnabled;
 
     UPROPERTY(BlueprintReadWrite)
     float superJumpHoldMultiplierMax;
@@ -73,6 +77,26 @@ public:
 };
 
 USTRUCT(BlueprintType)
+struct FSuperPioneer_ConfigStruct_groundSlam {
+    GENERATED_BODY()
+public:
+    UPROPERTY(BlueprintReadWrite)
+    bool groundSlamEnabled;
+
+    UPROPERTY(BlueprintReadWrite)
+    bool groundSlamUIEnabled;
+
+    UPROPERTY(BlueprintReadWrite)
+    float groundSlamMaxAngle;
+
+    UPROPERTY(BlueprintReadWrite)
+    float groundSlamInitialVelocity;
+
+    UPROPERTY(BlueprintReadWrite)
+    float groundSlamAcceleration;
+};
+
+USTRUCT(BlueprintType)
 struct FSuperPioneer_ConfigStruct_other {
     GENERATED_BODY()
 public:
@@ -93,6 +117,9 @@ public:
 
     UPROPERTY(BlueprintReadWrite)
     FSuperPioneer_ConfigStruct_superJumpModifications superJumpModifications;
+
+    UPROPERTY(BlueprintReadWrite)
+    FSuperPioneer_ConfigStruct_groundSlam groundSlam;
 
     UPROPERTY(BlueprintReadWrite)
     FSuperPioneer_ConfigStruct_other other;

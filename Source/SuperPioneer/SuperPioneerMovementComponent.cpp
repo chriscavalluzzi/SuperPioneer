@@ -37,6 +37,18 @@ void USuperPioneerMovementComponent::Setup(AFGCharacterPlayer* _localPlayer, UIn
 	this->inputComponent = _inputComponent;
 	this->isHost = _isHost;
 
+	isUIBuilt = false;
+	if (AController* controller = _localPlayer->Controller) {
+		if (AFGPlayerController* playerController = Cast<AFGPlayerController>(controller)) {
+			if (AFGHUD* hud = playerController->GetHUD<AFGHUD>()) {
+				if (hud->GetGameUI()) {
+					UE_LOG(LogTemp, Warning, TEXT("[SP] Existing HUD detected, will rebind instead of creating"))
+					isUIBuilt = true;
+				}
+			}
+		}
+	}
+
 	defaultMaxSprintSpeed = GetPlayerMovementComponent()->mMaxSprintSpeed;
 	defaultMaxStepHeight = GetPlayerMovementComponent()->MaxStepHeight;
 	defaultGroundFriction = GetPlayerMovementComponent()->GroundFriction;
@@ -72,6 +84,7 @@ void USuperPioneerMovementComponent::ReloadConfig() {
 		config_superSprintMaxStepHeight = SPConfig.superSprint.superSprintMaxStepHeight * 100.0f;
 
 		config_superJumpChargingEnabled = SPConfig.superJumpCharging.jumpChargingEnabled;
+		config_superJumpChargingUIEnabled = SPConfig.superJumpCharging.jumpChargingUIEnabled;
 		config_superJumpHoldMultiplierMax = SPConfig.superJumpCharging.superJumpHoldMultiplierMax;
 		config_superJumpHoldTimeMin = SPConfig.superJumpCharging.superJumpHoldTimeMin;
 		config_superJumpHoldTimeMax = std::max(SPConfig.superJumpCharging.superJumpHoldTimeMax, config_superJumpHoldTimeMin);
@@ -83,9 +96,11 @@ void USuperPioneerMovementComponent::ReloadConfig() {
 		config_jumpMultiplierPerGravityScale = SPConfig.superJumpModifications.jumpMultiplierPerGravityScale;
 		config_swimmingJumpMultiplier = SPConfig.superJumpModifications.swimmingJumpMultiplier;
 
-		config_groundSlamMaxAngle = 55.0f;
-		config_groundSlamInitialVelocity = 100.0f * 100.0f;
-		config_groundSlamAcceleration = 30000.0f * 100.f;
+		config_groundSlamEnabled = SPConfig.groundSlam.groundSlamEnabled;
+		config_groundSlamUIEnabled = SPConfig.groundSlam.groundSlamUIEnabled;
+		config_groundSlamMaxAngle = SPConfig.groundSlam.groundSlamMaxAngle;
+		config_groundSlamInitialVelocity = SPConfig.groundSlam.groundSlamInitialVelocity * 100.0f;
+		config_groundSlamAcceleration = SPConfig.groundSlam.groundSlamAcceleration * 100.f;
 
 		config_disableFallDamage = SPConfig.other.disableFallDamage;
 
@@ -106,6 +121,7 @@ void USuperPioneerMovementComponent::ReloadConfig() {
 
 void USuperPioneerMovementComponent::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) {
 	CheckForActionRebind();
+	CheckForReticleHUDRebind();
 	if (config_superSprintEnabled) { SprintTick(DeltaTime); }
 	if (config_superJumpChargingEnabled) { JumpTick(DeltaTime); }
 	GroundSlamTick(DeltaTime);
@@ -123,31 +139,41 @@ void USuperPioneerMovementComponent::CheckForActionRebind() {
 }
 
 void USuperPioneerMovementComponent::AddReticleHUD() {
-	UE_LOG(LogTemp, Warning, TEXT("[SP] Attempting to create reticle HUD..."))
-	FStringClassReference groundSlamWidgetClassRef(TEXT("WidgetBlueprint'/SuperPioneer/SuperPioneerReticleHUD.SuperPioneerReticleHUD_C'"));
-	if (UClass* groundSlamWidgetClass = groundSlamWidgetClassRef.TryLoadClass<UUserWidget>()) {
-		if (AController* controller = GetPlayer()->Controller) {
-			if (AFGPlayerController* playerController = Cast<AFGPlayerController>(controller)) {
-				if (AFGHUD* hud = playerController->GetHUD<AFGHUD>()) {
-					if (UUserWidget* gameUI = hud->GetGameUI()) {
-						if (UCanvasPanel* parentWidget = gameUI->WidgetTree->FindWidget<UCanvasPanel>("StandardUI")) {
-							reticleHUD = CreateWidget<UUserWidget>(((UGameEngine*)GEngine)->GameInstance, groundSlamWidgetClass);
-							reticleHUD->SetRenderTransformPivot(FVector2D(0.5, 0.5));
-							UPanelSlot* slot = parentWidget->AddChild(reticleHUD);
-							if (UCanvasPanelSlot* panelSlot = Cast<UCanvasPanelSlot>(slot)) {
-								panelSlot->SetAnchors(FAnchors(0.5, 0.5, 0.5, 0.5));
-								panelSlot->SetAlignment(FVector2D(0.5f, 0.5f));
-								panelSlot->SetSize(gameUI->GetDesiredSize());
-								UE_LOG(LogTemp, Warning, TEXT("[SP] Reticle HUD created successfully."))
-								return;
-							}
-						}
+	if (!isUIBuilt) {
+		UE_LOG(LogTemp, Warning, TEXT("[SP] Attempting to create reticle HUD..."))
+		FStringClassReference groundSlamWidgetClassRef(TEXT("WidgetBlueprint'/SuperPioneer/SuperPioneerReticleHUD.SuperPioneerReticleHUD_C'"));
+		if (UClass* groundSlamWidgetClass = groundSlamWidgetClassRef.TryLoadClass<UUserWidget>()) {
+			if(UUserWidget* gameUI = GetGameUI()) {
+				if (UCanvasPanel* parentWidget = gameUI->WidgetTree->FindWidget<UCanvasPanel>("StandardUI")) {
+					reticleHUD = CreateWidget<UUserWidget>(((UGameEngine*)GEngine)->GameInstance, groundSlamWidgetClass, reticleHUDWidgetName);
+					reticleHUD->SetRenderTransformPivot(FVector2D(0.5, 0.5));
+					UPanelSlot* slot = parentWidget->AddChild(reticleHUD);
+					if (UCanvasPanelSlot* panelSlot = Cast<UCanvasPanelSlot>(slot)) {
+						panelSlot->SetAnchors(FAnchors(0.5, 0.5, 0.5, 0.5));
+						panelSlot->SetAlignment(FVector2D(0.5f, 0.5f));
+						panelSlot->SetSize(gameUI->GetDesiredSize());
+						UE_LOG(LogTemp, Warning, TEXT("[SP] Reticle HUD created successfully."))
+						return;
 					}
 				}
 			}
 		}
+		UE_LOG(LogTemp, Error, TEXT("[SP] Reticle HUD creation failed!"))
 	}
-	UE_LOG(LogTemp, Error, TEXT("[SP] Reticle HUD creation failed!"))
+}
+
+void USuperPioneerMovementComponent::CheckForReticleHUDRebind() {
+	if (!reticleHUD) {
+			if (UUserWidget* gameUI = GetGameUI()) {
+					if (UUserWidget* existingReticleHUD = gameUI->WidgetTree->FindWidget<UUserWidget>(reticleHUDWidgetName)) {
+						reticleHUD = existingReticleHUD;
+						isJumpChargeIndicatorVisible = true;
+						UpdateJumpChargeIndicator();
+						isGroundSlamIndicatorVisible = true;
+						UpdateGroundSlamIndicator();
+					}
+			}
+	}
 }
 
 RCO* USuperPioneerMovementComponent::GetRCO() {
@@ -171,6 +197,7 @@ UFGCharacterMovementComponent* USuperPioneerMovementComponent::GetPlayerMovement
 
 void USuperPioneerMovementComponent::BeginPlay() {
 	AddReticleHUD();
+	GetUIElementByName<UOverlay>("JumpChargeIndicator");
 }
 
 void USuperPioneerMovementComponent::EndPlay(const EEndPlayReason::Type EndPlayReason) {
@@ -510,7 +537,7 @@ UWidget* USuperPioneerMovementComponent::GetJumpChargeIndicatorCurrent() {
 }
 
 void USuperPioneerMovementComponent::UpdateJumpChargeIndicator() {
-	if (!isJumpChargeIndicatorVisible && isJumpPressed && jumpHoldDuration > config_superJumpHoldTimeMin) {
+	if (config_superJumpChargingUIEnabled && !isJumpChargeIndicatorVisible && isJumpPressed && jumpHoldDuration > config_superJumpHoldTimeMin) {
 		UWidget* indicator = GetJumpChargeIndicator();
 		UWidget * current = GetJumpChargeIndicatorCurrent();
 		if (indicator && current) {
@@ -518,7 +545,7 @@ void USuperPioneerMovementComponent::UpdateJumpChargeIndicator() {
 			current->SetRenderScale(FVector2D(CalculateCurrentJumpHoldPercentOfMax(), 1.0f));
 			isJumpChargeIndicatorVisible = true;
 		}
-	} else if (isJumpChargeIndicatorVisible && !isJumpPressed) {
+	} else if (isJumpChargeIndicatorVisible && (!isJumpPressed || !IsValid(inputComponent))) {
 		if (UWidget* indicator = GetJumpChargeIndicator()) {
 			GetJumpChargeIndicator()->SetVisibility(ESlateVisibility::Hidden);
 			isJumpChargeIndicatorVisible = false;
@@ -533,15 +560,17 @@ void USuperPioneerMovementComponent::UpdateJumpChargeIndicator() {
 // Ground Slam
 
 void USuperPioneerMovementComponent::GroundSlamPressed() {
-	FVector v = GetPlayer()->GetCameraComponentForwardVector();
-	if (IsEligibleForGroundSlam()) {
-		groundSlamDirection = GetPlayer()->GetCameraComponentForwardVector();
-		if (isGroundSlamming) {
-			GetPlayerMovementComponent()->Launch(groundSlamDirection * GetPlayerMovementComponent()->Velocity.Size());
-		} else {
-			SetPlayerGravityScale(0.0f);
-			GetPlayerMovementComponent()->Launch(groundSlamDirection * config_groundSlamInitialVelocity);
-			isGroundSlamming = true;
+	if (config_groundSlamEnabled) {
+		FVector v = GetPlayer()->GetCameraComponentForwardVector();
+		if (IsEligibleForGroundSlam()) {
+			groundSlamDirection = GetPlayer()->GetCameraComponentForwardVector();
+			if (isGroundSlamming) {
+				GetPlayerMovementComponent()->Launch(groundSlamDirection * GetPlayerMovementComponent()->Velocity.Size());
+			} else {
+				SetPlayerGravityScale(0.0f);
+				GetPlayerMovementComponent()->Launch(groundSlamDirection * config_groundSlamInitialVelocity);
+				isGroundSlamming = true;
+			}
 		}
 	}
 }
@@ -551,10 +580,12 @@ bool USuperPioneerMovementComponent::IsEligibleForGroundSlam() {
 }
 
 void USuperPioneerMovementComponent::GroundSlamTick(float deltaTime) {
-	if (isGroundSlamming) {
-		GetPlayerMovementComponent()->AddForce(groundSlamDirection * config_groundSlamAcceleration);
+	if (config_groundSlamEnabled) {
+		if (isGroundSlamming) {
+			GetPlayerMovementComponent()->AddForce(groundSlamDirection * config_groundSlamAcceleration);
+		}
+		UpdateGroundSlamIndicator();
 	}
-	UpdateGroundSlamIndicator();
 }
 
 UWidget* USuperPioneerMovementComponent::GetGroundSlamIndicator() {
@@ -562,12 +593,12 @@ UWidget* USuperPioneerMovementComponent::GetGroundSlamIndicator() {
 }
 
 void USuperPioneerMovementComponent::UpdateGroundSlamIndicator() {
-	if (!isGroundSlamIndicatorVisible && IsEligibleForGroundSlam()) {
+	if (config_groundSlamUIEnabled && !isGroundSlamIndicatorVisible && IsEligibleForGroundSlam()) {
 		if (UWidget* indicator = GetGroundSlamIndicator()) {
 			indicator->SetVisibility(ESlateVisibility::Visible);
 			isGroundSlamIndicatorVisible = true;
 		}
-	} else if (isGroundSlamIndicatorVisible && !IsEligibleForGroundSlam()) {
+	} else if (isGroundSlamIndicatorVisible && (!IsEligibleForGroundSlam() || !IsValid(inputComponent))) {
 		if (UWidget* indicator = GetGroundSlamIndicator()) {
 			indicator->SetVisibility(ESlateVisibility::Hidden);
 			isGroundSlamIndicatorVisible = false;
@@ -581,10 +612,21 @@ float USuperPioneerMovementComponent::lerp(float a, float b, float t) {
 	return a * (1.0 - t) + (b * t);
 }
 
-template<class C> UWidget* USuperPioneerMovementComponent::GetUIElementByName(char* name) {
+UUserWidget* USuperPioneerMovementComponent::GetGameUI() {
+	if (AController* controller = GetPlayer()->Controller) {
+		if (AFGPlayerController* playerController = Cast<AFGPlayerController>(controller)) {
+			if (AFGHUD* hud = playerController->GetHUD<AFGHUD>()) {
+				return hud->GetGameUI();
+			}
+		}
+	}
+	return nullptr;
+}
+
+template<class Type> Type* USuperPioneerMovementComponent::GetUIElementByName(char* name) {
 	if (reticleHUD) {
 		if (UWidgetTree * tree = reticleHUD->WidgetTree) {
-			return tree->FindWidget<C>(name);
+			return tree->FindWidget<Type>(name);
 		}
 	}
 	return nullptr;

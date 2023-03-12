@@ -35,15 +35,18 @@ private:
 	AFGCharacterPlayer* localPlayer;
 	UInputComponent* inputComponent;
 	UUserWidget* reticleHUD;
+	const char* reticleHUDWidgetName = "SuperPioneerReticleHUD";
 	const char* superSprintCommandName = "SuperPioneer.SuperSprint";
 	bool isHost;
 	bool isDestroyed = false;
 	bool needToRebindActions = false;
+	bool isUIBuilt = false;
 
 	void Reset();
 	void BindActions();
 	void CheckForActionRebind();
 	void AddReticleHUD();
+	void CheckForReticleHUDRebind();
 	RCO* GetRCO();
 	AFGCharacterPlayer* GetPlayer();
 	UFGCharacterMovementComponent* GetPlayerMovementComponent();
@@ -94,6 +97,7 @@ private:
 	// Jumping
 
 	bool config_superJumpChargingEnabled;
+	bool config_superJumpChargingUIEnabled;
 	float config_superJumpHoldMultiplierMax;
 	float config_superJumpHoldTimeMin;
 	float config_superJumpHoldTimeMax;
@@ -134,6 +138,8 @@ private:
 
 	// Ground Slam
 
+	bool config_groundSlamEnabled;
+	bool config_groundSlamUIEnabled;
 	float config_groundSlamMaxAngle;
 	float config_groundSlamInitialVelocity;
 	float config_groundSlamAcceleration;
@@ -154,5 +160,6 @@ private:
 	// Utilities
 
 	static float lerp(float a, float b, float t);
-	template<class C>	UWidget* GetUIElementByName(char* name);
+	UUserWidget* GetGameUI();
+	template<class Type> Type* GetUIElementByName(char* name);
 };
