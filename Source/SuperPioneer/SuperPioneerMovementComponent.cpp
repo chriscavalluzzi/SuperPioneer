@@ -565,10 +565,10 @@ void USuperPioneerMovementComponent::GroundSlamPressed() {
 		if (IsEligibleForGroundSlam()) {
 			groundSlamDirection = GetPlayer()->GetCameraComponentForwardVector();
 			if (isGroundSlamming) {
-				GetPlayerMovementComponent()->Launch(groundSlamDirection * GetPlayerMovementComponent()->Velocity.Size());
+				GroundSlamLaunch(groundSlamDirection * GetPlayerMovementComponent()->Velocity.Size());
 			} else {
 				SetPlayerGravityScale(0.0f);
-				GetPlayerMovementComponent()->Launch(groundSlamDirection * config_groundSlamInitialVelocity);
+				GroundSlamLaunch(groundSlamDirection * config_groundSlamInitialVelocity);
 				isGroundSlamming = true;
 			}
 		}
@@ -582,7 +582,7 @@ bool USuperPioneerMovementComponent::IsEligibleForGroundSlam() {
 void USuperPioneerMovementComponent::GroundSlamTick(float deltaTime) {
 	if (config_groundSlamEnabled) {
 		if (isGroundSlamming) {
-			GetPlayerMovementComponent()->AddForce(groundSlamDirection * config_groundSlamAcceleration);
+			GroundSlamAddForce(groundSlamDirection * config_groundSlamAcceleration);
 		}
 		UpdateGroundSlamIndicator();
 	}
@@ -603,6 +603,24 @@ void USuperPioneerMovementComponent::UpdateGroundSlamIndicator() {
 			indicator->SetVisibility(ESlateVisibility::Hidden);
 			isGroundSlamIndicatorVisible = false;
 		}
+	}
+}
+
+void USuperPioneerMovementComponent::GroundSlamLaunch(FVector vector) {
+	GetPlayerMovementComponent()->Launch(vector);
+
+	RCO* rco = GetRCO();
+	if (rco && !isHost) {
+		rco->ServerLaunch(GetPlayer(), vector);
+	}
+}
+
+void USuperPioneerMovementComponent::GroundSlamAddForce(FVector force) {
+	GetPlayerMovementComponent()->AddForce(force);
+
+	RCO* rco = GetRCO();
+	if (rco && !isHost) {
+		rco->ServerAddForce(GetPlayer(), force);
 	}
 }
 

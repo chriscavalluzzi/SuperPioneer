@@ -77,6 +77,20 @@ void USuperPioneerRemoteCallObject::ServerDoJump_Implementation(AFGCharacterPlay
 	}
 }
 
+void USuperPioneerRemoteCallObject::ServerLaunch_Implementation(AFGCharacterPlayer* player, FVector const& vector) {
+	UFGCharacterMovementComponent* component = GetMovementComponent(player);
+	if (component) {
+		component->Launch(vector);
+	}
+}
+
+void USuperPioneerRemoteCallObject::ServerAddForce_Implementation(AFGCharacterPlayer* player, FVector force) {
+	UFGCharacterMovementComponent* component = GetMovementComponent(player);
+	if (component) {
+		component->AddForce(force);
+	}
+}
+
 bool USuperPioneerRemoteCallObject::GetFallDamageDisabled() {
 	return fallDamageDisabled;
 }

@@ -46,6 +46,7 @@ public:
 	void ServerSetFallDamageDisabled(bool newFallDamageDisabled);
 
 	// Actions
+
 	UFUNCTION(Server, Reliable)
 	void ServerSprintPressed(AFGCharacterPlayer* player);
 
@@ -54,6 +55,12 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void ServerDoJump(AFGCharacterPlayer* player);
+
+	UFUNCTION(Server, Reliable)
+	void ServerLaunch(AFGCharacterPlayer* player, FVector const& vector);
+
+	UFUNCTION(Server, Reliable)
+	void ServerAddForce(AFGCharacterPlayer* player, FVector force);
 
 	bool GetFallDamageDisabled();
 };

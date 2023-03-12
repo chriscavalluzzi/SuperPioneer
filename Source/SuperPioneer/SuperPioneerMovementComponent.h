@@ -153,6 +153,8 @@ private:
 	void GroundSlamTick(float deltaTime);
 	UWidget* GetGroundSlamIndicator();
 	void UpdateGroundSlamIndicator();
+	void GroundSlamLaunch(FVector vector);
+	void GroundSlamAddForce(FVector force);
 
 	// Other
 	bool config_disableFallDamage;
