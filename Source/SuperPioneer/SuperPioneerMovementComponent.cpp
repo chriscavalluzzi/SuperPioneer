@@ -25,6 +25,7 @@ void USuperPioneerMovementComponent::Reset() {
 	isJumpPrimed = false;
 	isFalling = false;
 	isGroundSlamming = false;
+	isGroundSlamIndicatorVisible = false;
 	jumpHoldDuration = 0.0;
 	sprintDuration = 0.0;
 }
@@ -121,6 +122,34 @@ void USuperPioneerMovementComponent::CheckForActionRebind() {
 	}
 }
 
+void USuperPioneerMovementComponent::AddReticleHUD() {
+	UE_LOG(LogTemp, Warning, TEXT("[SP] Attempting to create reticle HUD..."))
+	FStringClassReference groundSlamWidgetClassRef(TEXT("WidgetBlueprint'/SuperPioneer/SuperPioneerReticleHUD.SuperPioneerReticleHUD_C'"));
+	if (UClass* groundSlamWidgetClass = groundSlamWidgetClassRef.TryLoadClass<UUserWidget>()) {
+		if (AController* controller = GetPlayer()->Controller) {
+			if (AFGPlayerController* playerController = Cast<AFGPlayerController>(controller)) {
+				if (AFGHUD* hud = playerController->GetHUD<AFGHUD>()) {
+					if (UUserWidget* gameUI = hud->GetGameUI()) {
+						if (UCanvasPanel* parentWidget = gameUI->WidgetTree->FindWidget<UCanvasPanel>("StandardUI")) {
+							reticleHUD = CreateWidget<UUserWidget>(((UGameEngine*)GEngine)->GameInstance, groundSlamWidgetClass);
+							reticleHUD->SetRenderTransformPivot(FVector2D(0.5, 0.5));
+							UPanelSlot* slot = parentWidget->AddChild(reticleHUD);
+							if (UCanvasPanelSlot* panelSlot = Cast<UCanvasPanelSlot>(slot)) {
+								panelSlot->SetAnchors(FAnchors(0.5, 0.5, 0.5, 0.5));
+								panelSlot->SetAlignment(FVector2D(0.5f, 0.5f));
+								panelSlot->SetSize(gameUI->GetDesiredSize());
+								UE_LOG(LogTemp, Warning, TEXT("[SP] Reticle HUD created successfully."))
+								return;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	UE_LOG(LogTemp, Error, TEXT("[SP] Reticle HUD creation failed!"))
+}
+
 RCO* USuperPioneerMovementComponent::GetRCO() {
 	AController* controller = GetPlayer()->Controller;
 	if (controller) {
@@ -138,6 +167,10 @@ AFGCharacterPlayer* USuperPioneerMovementComponent::GetPlayer() {
 
 UFGCharacterMovementComponent* USuperPioneerMovementComponent::GetPlayerMovementComponent() {
 	return GetPlayer()->GetFGMovementComponent();
+}
+
+void USuperPioneerMovementComponent::BeginPlay() {
+	AddReticleHUD();
 }
 
 void USuperPioneerMovementComponent::EndPlay(const EEndPlayReason::Type EndPlayReason) {
@@ -395,6 +428,7 @@ void USuperPioneerMovementComponent::JumpTick(float deltaTime) {
 	if (isJumpPressed) {
 		jumpHoldDuration += deltaTime;
 	}
+	UpdateJumpChargeIndicator();
 }
 
 bool USuperPioneerMovementComponent::CheckAndConsumeJump() {
@@ -467,31 +501,91 @@ void USuperPioneerMovementComponent::SetPlayerGravityScale(float newGravityScale
 	}
 }
 
-float USuperPioneerMovementComponent::lerp(float a, float b, float t) {
-	return a * (1.0 - t) + (b * t);
+UWidget* USuperPioneerMovementComponent::GetJumpChargeIndicator() {
+	return GetUIElementByName<UOverlay>("JumpChargeIndicator");
+}
+
+UWidget* USuperPioneerMovementComponent::GetJumpChargeIndicatorCurrent() {
+	return GetUIElementByName<UBorder>("JumpChargeIndicatorCurrent");
+}
+
+void USuperPioneerMovementComponent::UpdateJumpChargeIndicator() {
+	if (!isJumpChargeIndicatorVisible && isJumpPressed && jumpHoldDuration > config_superJumpHoldTimeMin) {
+		UWidget* indicator = GetJumpChargeIndicator();
+		UWidget * current = GetJumpChargeIndicatorCurrent();
+		if (indicator && current) {
+			indicator->SetVisibility(ESlateVisibility::Visible);
+			current->SetRenderScale(FVector2D(CalculateCurrentJumpHoldPercentOfMax(), 1.0f));
+			isJumpChargeIndicatorVisible = true;
+		}
+	} else if (isJumpChargeIndicatorVisible && !isJumpPressed) {
+		if (UWidget* indicator = GetJumpChargeIndicator()) {
+			GetJumpChargeIndicator()->SetVisibility(ESlateVisibility::Hidden);
+			isJumpChargeIndicatorVisible = false;
+		}
+	} else if (isJumpChargeIndicatorVisible) {
+		if (UWidget* current = GetJumpChargeIndicatorCurrent()) {
+			current->SetRenderScale(FVector2D(CalculateCurrentJumpHoldPercentOfMax(), 1.0f));
+		}
+	}
 }
 
 // Ground Slam
 
 void USuperPioneerMovementComponent::GroundSlamPressed() {
 	FVector v = GetPlayer()->GetCameraComponentForwardVector();
-	if (isFalling) {
-		FVector cameraDirection = GetPlayer()->GetCameraComponentForwardVector();
-		if (IsInGroundSlamAngle(cameraDirection)) {
+	if (IsEligibleForGroundSlam()) {
+		groundSlamDirection = GetPlayer()->GetCameraComponentForwardVector();
+		if (isGroundSlamming) {
+			GetPlayerMovementComponent()->Launch(groundSlamDirection * GetPlayerMovementComponent()->Velocity.Size());
+		} else {
 			SetPlayerGravityScale(0.0f);
-			groundSlamDirection = cameraDirection;
 			GetPlayerMovementComponent()->Launch(groundSlamDirection * config_groundSlamInitialVelocity);
 			isGroundSlamming = true;
 		}
 	}
 }
 
-bool USuperPioneerMovementComponent::IsInGroundSlamAngle(FVector angle) {
-	return angle.Z < -1.0f + (config_groundSlamMaxAngle / 90.0f);
+bool USuperPioneerMovementComponent::IsEligibleForGroundSlam() {
+	return isFalling && (GetPlayer()->GetCameraComponentForwardVector().Z < -1.0f + (config_groundSlamMaxAngle / 90.0f));
 }
 
 void USuperPioneerMovementComponent::GroundSlamTick(float deltaTime) {
 	if (isGroundSlamming) {
 		GetPlayerMovementComponent()->AddForce(groundSlamDirection * config_groundSlamAcceleration);
 	}
+	UpdateGroundSlamIndicator();
+}
+
+UWidget* USuperPioneerMovementComponent::GetGroundSlamIndicator() {
+	return GetUIElementByName<UBorder>("GroundSlamIndicator");
+}
+
+void USuperPioneerMovementComponent::UpdateGroundSlamIndicator() {
+	if (!isGroundSlamIndicatorVisible && IsEligibleForGroundSlam()) {
+		if (UWidget* indicator = GetGroundSlamIndicator()) {
+			indicator->SetVisibility(ESlateVisibility::Visible);
+			isGroundSlamIndicatorVisible = true;
+		}
+	} else if (isGroundSlamIndicatorVisible && !IsEligibleForGroundSlam()) {
+		if (UWidget* indicator = GetGroundSlamIndicator()) {
+			indicator->SetVisibility(ESlateVisibility::Hidden);
+			isGroundSlamIndicatorVisible = false;
+		}
+	}
+}
+
+// Utilities
+
+float USuperPioneerMovementComponent::lerp(float a, float b, float t) {
+	return a * (1.0 - t) + (b * t);
+}
+
+template<class C> UWidget* USuperPioneerMovementComponent::GetUIElementByName(char* name) {
+	if (reticleHUD) {
+		if (UWidgetTree * tree = reticleHUD->WidgetTree) {
+			return tree->FindWidget<C>(name);
+		}
+	}
+	return nullptr;
 }

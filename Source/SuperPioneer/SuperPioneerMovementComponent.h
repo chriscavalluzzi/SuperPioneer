@@ -3,6 +3,7 @@
 #include "FGCharacterPlayer.h"
 #include "SuperPioneer_ConfigStruct.h"
 #include "SuperPioneerRemoteCallObject.h"
+#include "UI/FGGameUI.h"
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
 #include "SuperPioneerMovementComponent.generated.h"
@@ -33,6 +34,7 @@ private:
 
 	AFGCharacterPlayer* localPlayer;
 	UInputComponent* inputComponent;
+	UUserWidget* reticleHUD;
 	const char* superSprintCommandName = "SuperPioneer.SuperSprint";
 	bool isHost;
 	bool isDestroyed = false;
@@ -41,9 +43,11 @@ private:
 	void Reset();
 	void BindActions();
 	void CheckForActionRebind();
+	void AddReticleHUD();
 	RCO* GetRCO();
 	AFGCharacterPlayer* GetPlayer();
 	UFGCharacterMovementComponent* GetPlayerMovementComponent();
+	virtual void BeginPlay();
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason);
 
 	// Sprinting
@@ -107,6 +111,7 @@ private:
 	bool isJumpPrimed;
 	bool isFalling;
 	float jumpHoldDuration;
+	bool isJumpChargeIndicatorVisible;
 
 	void JumpPressed();
 	void JumpReleased();
@@ -123,6 +128,9 @@ private:
 	float CalculateAirControl();
 	void SetPlayerAirControl(float newAirControl);
 	void SetPlayerGravityScale(float newGravityScale);
+	UWidget* GetJumpChargeIndicator();
+	UWidget* GetJumpChargeIndicatorCurrent();
+	void UpdateJumpChargeIndicator();
 
 	// Ground Slam
 
@@ -132,10 +140,13 @@ private:
 
 	bool isGroundSlamming;
 	FVector groundSlamDirection;
+	bool isGroundSlamIndicatorVisible;
 
 	void GroundSlamPressed();
-	bool IsInGroundSlamAngle(FVector angle);
+	bool IsEligibleForGroundSlam();
 	void GroundSlamTick(float deltaTime);
+	UWidget* GetGroundSlamIndicator();
+	void UpdateGroundSlamIndicator();
 
 	// Other
 	bool config_disableFallDamage;
@@ -143,4 +154,5 @@ private:
 	// Utilities
 
 	static float lerp(float a, float b, float t);
+	template<class C>	UWidget* GetUIElementByName(char* name);
 };
