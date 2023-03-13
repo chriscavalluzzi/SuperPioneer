@@ -589,7 +589,7 @@ void USuperPioneerMovementComponent::GroundSlamTick(float deltaTime) {
 }
 
 UWidget* USuperPioneerMovementComponent::GetGroundSlamIndicator() {
-	return GetUIElementByName<UBorder>("GroundSlamIndicator");
+	return GetUIElementByName<UOverlay>("GroundSlamIndicator");
 }
 
 void USuperPioneerMovementComponent::UpdateGroundSlamIndicator() {
