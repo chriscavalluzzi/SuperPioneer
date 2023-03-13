@@ -146,7 +146,7 @@ void USuperPioneerMovementComponent::AddReticleHUD() {
 		if (UClass* groundSlamWidgetClass = groundSlamWidgetClassRef.TryLoadClass<UUserWidget>()) {
 			if(UUserWidget* gameUI = GetGameUI()) {
 				if (UCanvasPanel* parentWidget = gameUI->WidgetTree->FindWidget<UCanvasPanel>("StandardUI")) {
-					reticleHUD = CreateWidget<UUserWidget>(((UGameEngine*)GEngine)->GameInstance, groundSlamWidgetClass, reticleHUDWidgetName);
+					reticleHUD = CreateWidget<USuperPioneerHUD>(((UGameEngine*)GEngine)->GameInstance, groundSlamWidgetClass, reticleHUDWidgetName);
 					reticleHUD->SetRenderTransformPivot(FVector2D(0.5, 0.5));
 					UPanelSlot* slot = parentWidget->AddChild(reticleHUD);
 					if (UCanvasPanelSlot* panelSlot = Cast<UCanvasPanelSlot>(slot)) {
@@ -166,7 +166,7 @@ void USuperPioneerMovementComponent::AddReticleHUD() {
 void USuperPioneerMovementComponent::CheckForReticleHUDRebind() {
 	if (!reticleHUD) {
 			if (UUserWidget* gameUI = GetGameUI()) {
-					if (UUserWidget* existingReticleHUD = gameUI->WidgetTree->FindWidget<UUserWidget>(reticleHUDWidgetName)) {
+					if (USuperPioneerHUD* existingReticleHUD = gameUI->WidgetTree->FindWidget<USuperPioneerHUD>(reticleHUDWidgetName)) {
 						reticleHUD = existingReticleHUD;
 						isJumpChargeIndicatorVisible = true;
 						UpdateJumpChargeIndicator();
@@ -198,7 +198,6 @@ UFGCharacterMovementComponent* USuperPioneerMovementComponent::GetPlayerMovement
 
 void USuperPioneerMovementComponent::BeginPlay() {
 	AddReticleHUD();
-	GetUIElementByName<UOverlay>("JumpChargeIndicator");
 }
 
 void USuperPioneerMovementComponent::EndPlay(const EEndPlayReason::Type EndPlayReason) {
@@ -529,31 +528,21 @@ void USuperPioneerMovementComponent::SetPlayerGravityScale(float newGravityScale
 	}
 }
 
-UWidget* USuperPioneerMovementComponent::GetJumpChargeIndicator() {
-	return GetUIElementByName<UOverlay>("JumpChargeIndicator");
-}
-
-UWidget* USuperPioneerMovementComponent::GetJumpChargeIndicatorCurrent() {
-	return GetUIElementByName<UBorder>("JumpChargeIndicatorCurrent");
-}
-
 void USuperPioneerMovementComponent::UpdateJumpChargeIndicator() {
 	if (config_superJumpChargingUIEnabled && !isJumpChargeIndicatorVisible && isJumpPressed && jumpHoldDuration > config_superJumpHoldTimeMin) {
-		UWidget* indicator = GetJumpChargeIndicator();
-		UWidget * current = GetJumpChargeIndicatorCurrent();
-		if (indicator && current) {
-			indicator->SetVisibility(ESlateVisibility::Visible);
-			current->SetRenderScale(FVector2D(CalculateCurrentJumpHoldPercentOfMax(), 1.0f));
+		if (reticleHUD) {
+			reticleHUD->ShowJumpChargeIndicator();
+			reticleHUD->SetJumpChargeIndicatorValue(CalculateCurrentJumpHoldPercentOfMax());
 			isJumpChargeIndicatorVisible = true;
 		}
 	} else if (isJumpChargeIndicatorVisible && (!isJumpPressed || !IsValid(inputComponent))) {
-		if (UWidget* indicator = GetJumpChargeIndicator()) {
-			GetJumpChargeIndicator()->SetVisibility(ESlateVisibility::Hidden);
+		if (reticleHUD) {
+			reticleHUD->HideJumpChargeIndicator();
 			isJumpChargeIndicatorVisible = false;
 		}
 	} else if (isJumpChargeIndicatorVisible) {
-		if (UWidget* current = GetJumpChargeIndicatorCurrent()) {
-			current->SetRenderScale(FVector2D(CalculateCurrentJumpHoldPercentOfMax(), 1.0f));
+		if (reticleHUD) {
+			reticleHUD->SetJumpChargeIndicatorValue(CalculateCurrentJumpHoldPercentOfMax());
 		}
 	}
 }
@@ -589,19 +578,15 @@ void USuperPioneerMovementComponent::GroundSlamTick(float deltaTime) {
 	}
 }
 
-UWidget* USuperPioneerMovementComponent::GetGroundSlamIndicator() {
-	return GetUIElementByName<UOverlay>("GroundSlamIndicator");
-}
-
 void USuperPioneerMovementComponent::UpdateGroundSlamIndicator() {
 	if (config_groundSlamUIEnabled && !isGroundSlamIndicatorVisible && IsEligibleForGroundSlam()) {
-		if (UWidget* indicator = GetGroundSlamIndicator()) {
-			indicator->SetVisibility(ESlateVisibility::Visible);
+		if (reticleHUD) {
+			reticleHUD->ShowGroundSlamIndicator();
 			isGroundSlamIndicatorVisible = true;
 		}
 	} else if (isGroundSlamIndicatorVisible && (!IsEligibleForGroundSlam() || !IsValid(inputComponent))) {
-		if (UWidget* indicator = GetGroundSlamIndicator()) {
-			indicator->SetVisibility(ESlateVisibility::Hidden);
+		if (reticleHUD) {
+			reticleHUD->HideGroundSlamIndicator();
 			isGroundSlamIndicatorVisible = false;
 		}
 	}
@@ -637,15 +622,6 @@ UUserWidget* USuperPioneerMovementComponent::GetGameUI() {
 			if (AFGHUD* hud = playerController->GetHUD<AFGHUD>()) {
 				return hud->GetGameUI();
 			}
-		}
-	}
-	return nullptr;
-}
-
-template<class Type> Type* USuperPioneerMovementComponent::GetUIElementByName(char* name) {
-	if (reticleHUD) {
-		if (UWidgetTree * tree = reticleHUD->WidgetTree) {
-			return tree->FindWidget<Type>(name);
 		}
 	}
 	return nullptr;

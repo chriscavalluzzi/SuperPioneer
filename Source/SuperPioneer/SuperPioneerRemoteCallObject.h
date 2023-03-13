@@ -3,7 +3,6 @@
 #include "CoreMinimal.h"
 #include "FGRemoteCallObject.h"
 #include "FGCharacterPlayer.h"
-#include "SuperPioneerMovementComponent.h"
 #include "SuperPioneerRemoteCallObject.generated.h"
 
 UCLASS()

@@ -3,6 +3,7 @@
 #include "FGCharacterPlayer.h"
 #include "SuperPioneer_ConfigStruct.h"
 #include "SuperPioneerRemoteCallObject.h"
+#include "SuperPioneerHUD.h"
 #include "UI/FGGameUI.h"
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
@@ -34,7 +35,7 @@ private:
 
 	AFGCharacterPlayer* localPlayer;
 	UInputComponent* inputComponent;
-	UUserWidget* reticleHUD;
+	USuperPioneerHUD* reticleHUD;
 	const char* reticleHUDWidgetName = "SuperPioneerReticleHUD";
 	const char* superSprintCommandName = "SuperPioneer.SuperSprint";
 	bool isHost;
@@ -132,8 +133,6 @@ private:
 	float CalculateAirControl();
 	void SetPlayerAirControl(float newAirControl);
 	void SetPlayerGravityScale(float newGravityScale);
-	UWidget* GetJumpChargeIndicator();
-	UWidget* GetJumpChargeIndicatorCurrent();
 	void UpdateJumpChargeIndicator();
 
 	// Ground Slam
@@ -152,7 +151,6 @@ private:
 	void GroundSlamPressed();
 	bool IsEligibleForGroundSlam();
 	void GroundSlamTick(float deltaTime);
-	UWidget* GetGroundSlamIndicator();
 	void UpdateGroundSlamIndicator();
 	void GroundSlamLaunch(FVector vector);
 	void GroundSlamAddForce(FVector force);
@@ -164,5 +162,4 @@ private:
 
 	static float lerp(float a, float b, float t);
 	UUserWidget* GetGameUI();
-	template<class Type> Type* GetUIElementByName(char* name);
 };
