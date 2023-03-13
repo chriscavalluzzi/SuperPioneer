@@ -356,7 +356,7 @@ void USuperPioneerMovementComponent::SetPlayerDeceleration(float newGroundFricti
 }
 
 float USuperPioneerMovementComponent::GetPlayerCurrentSprintSpeed() {
-	return GetPlayerMovementComponent()->mMaxSprintSpeed;
+	return GetPlayerMovementComponent()->Velocity.Size();
 }
 
 bool USuperPioneerMovementComponent::GetIsPlayerSprinting() {
