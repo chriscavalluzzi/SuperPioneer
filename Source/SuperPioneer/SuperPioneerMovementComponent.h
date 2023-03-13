@@ -143,6 +143,7 @@ private:
 	float config_groundSlamMaxAngle;
 	float config_groundSlamInitialVelocity;
 	float config_groundSlamAcceleration;
+	float config_groundSlamGroundFriction;
 
 	bool isGroundSlamming;
 	FVector groundSlamDirection;

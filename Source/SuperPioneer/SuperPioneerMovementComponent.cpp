@@ -101,6 +101,7 @@ void USuperPioneerMovementComponent::ReloadConfig() {
 		config_groundSlamMaxAngle = SPConfig.groundSlam.groundSlamMaxAngle;
 		config_groundSlamInitialVelocity = SPConfig.groundSlam.groundSlamInitialVelocity * 100.0f;
 		config_groundSlamAcceleration = SPConfig.groundSlam.groundSlamAcceleration * 100.f;
+		config_groundSlamGroundFriction = SPConfig.groundSlam.groundSlamGroundFriction;
 
 		config_disableFallDamage = SPConfig.other.disableFallDamage;
 
@@ -444,7 +445,7 @@ void USuperPioneerMovementComponent::OnLanded() {
 		EndSuperSprint();
 	}
 	if (isGroundSlamming && !isSuperSprinting) {
-		SetPlayerDeceleration(defaultGroundFriction);
+		SetPlayerDeceleration(config_groundSlamGroundFriction);
 	}
 	eligibleForSprintResume = false;
 	isFalling = false;

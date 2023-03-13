@@ -94,6 +94,9 @@ public:
 
     UPROPERTY(BlueprintReadWrite)
     float groundSlamAcceleration;
+
+    UPROPERTY(BlueprintReadWrite)
+    float groundSlamGroundFriction;
 };
 
 USTRUCT(BlueprintType)
