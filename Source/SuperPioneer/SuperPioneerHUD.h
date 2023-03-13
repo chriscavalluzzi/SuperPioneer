@@ -25,4 +25,7 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void HideGroundSlamIndicator();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void ActivateGroundSlam();
 };

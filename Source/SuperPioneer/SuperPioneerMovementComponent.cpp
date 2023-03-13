@@ -150,7 +150,7 @@ void USuperPioneerMovementComponent::AddReticleHUD() {
 					reticleHUD->SetRenderTransformPivot(FVector2D(0.5, 0.5));
 					UPanelSlot* slot = parentWidget->AddChild(reticleHUD);
 					if (UCanvasPanelSlot* panelSlot = Cast<UCanvasPanelSlot>(slot)) {
-						panelSlot->SetAnchors(FAnchors(0.5, 0.5, 0.5, 0.5));
+						panelSlot->SetAnchors(FAnchors(0.0, 0.0, 1.0, 1.0));
 						panelSlot->SetAlignment(FVector2D(0.5f, 0.5f));
 						panelSlot->SetSize(gameUI->GetDesiredSize());
 						UE_LOG(LogTemp, Warning, TEXT("[SP] Reticle HUD created successfully."))
@@ -560,6 +560,9 @@ void USuperPioneerMovementComponent::GroundSlamPressed() {
 				SetPlayerGravityScale(0.0f);
 				GroundSlamLaunch(groundSlamDirection * config_groundSlamInitialVelocity);
 				isGroundSlamming = true;
+			}
+			if (reticleHUD) {
+				reticleHUD->ActivateGroundSlam();
 			}
 		}
 	}
