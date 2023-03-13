@@ -16,6 +16,11 @@ Hold down the jump button to charge your jump, then release it to jump super hig
 
 ![](/Media/jump.gif)
 
+### 👞 Ground Slam
+While in the air and looking downwards, press the crouch button to rocket yourself towards where you're aiming!
+
+![](/Media/slam.gif)
+
 ### 🔧 Customization
 Features can be heavily customized (or disabled) from the in-game menu: Pause Menu → Mod Configs → SuperPioneer
 
