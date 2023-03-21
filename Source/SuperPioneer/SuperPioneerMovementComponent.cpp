@@ -11,6 +11,9 @@ USuperPioneerMovementComponent::USuperPioneerMovementComponent() {
   UE_LOG(LogTemp, Warning, TEXT("[SP] Starting SP Movement Component Construction"))
 	PrimaryComponentTick.bCanEverTick = true;
 	Reset();
+
+	static ConstructorHelpers::FObjectFinder<UClass> anim(TEXT("Class'/SuperPioneer/Animations/SuperPioneer1PAnimation.SuperPioneer1PAnimation_C'"));
+	customAnimClass = anim.Object;
 };
 
 void USuperPioneerMovementComponent::Reset() {
@@ -55,6 +58,8 @@ void USuperPioneerMovementComponent::Setup(AFGCharacterPlayer* _localPlayer, UIn
 	defaultJumpZVelocity = GetPlayerMovementComponent()->JumpZVelocity;
 	defaultAirControl = GetPlayerMovementComponent()->AirControl;
 	defaultGravityScale = GetPlayerMovementComponent()->GravityScale;
+
+	vanillaAnimClass = GetMesh1P()->GetAnimClass();
 
 	ReloadConfig();
 
@@ -194,6 +199,32 @@ AFGCharacterPlayer* USuperPioneerMovementComponent::GetPlayer() {
 
 UFGCharacterMovementComponent* USuperPioneerMovementComponent::GetPlayerMovementComponent() {
 	return GetPlayer()->GetFGMovementComponent();
+}
+
+void USuperPioneerMovementComponent::StartCustomAnimation(ESPAnimState firstState) {
+	FPoseSnapshot poseSnapshot;
+	USkeletalMeshComponent* mesh1P = GetMesh1P();
+	mesh1P->GetAnimClass();
+	mesh1P->GetAnimInstance()->SnapshotPose(poseSnapshot);
+	mesh1P->SetAnimClass(customAnimClass);
+	customAnimInstance = Cast<USuperPioneerAnimBlueprint>(mesh1P->GetAnimInstance());
+	customAnimInstance->entryPose = poseSnapshot;
+	ChangeCustomAnimationState(firstState);
+}
+
+void USuperPioneerMovementComponent::ChangeCustomAnimationState(ESPAnimState newState) {
+	if (customAnimInstance) {
+		customAnimInstance->animState = newState;
+	}
+}
+
+void USuperPioneerMovementComponent::EndCustomAnimation() {
+	GetMesh1P()->SetAnimClass(vanillaAnimClass);
+	customAnimInstance = nullptr;
+}
+
+USkeletalMeshComponent* USuperPioneerMovementComponent::GetMesh1P() {
+	return GetPlayer()->GetMesh1P();
 }
 
 void USuperPioneerMovementComponent::BeginPlay() {
@@ -436,6 +467,7 @@ void USuperPioneerMovementComponent::Invoke_Jump() {
 
 void USuperPioneerMovementComponent::OnLanded() {
 	ResetJumpModifiers();
+	EndCustomAnimation();
 	if (eligibleForSprintResume && isSuperSprintPressed) {
 		// Allow sprint to continue
 	}	else if (isSuperSprintPressed) {
@@ -564,6 +596,7 @@ void USuperPioneerMovementComponent::GroundSlamPressed() {
 			if (reticleHUD) {
 				reticleHUD->ActivateGroundSlam();
 			}
+			StartCustomAnimation(ESPAnimState::SLAM_FLYING);
 		}
 	}
 }

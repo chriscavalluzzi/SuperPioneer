@@ -3,6 +3,7 @@
 #include "FGCharacterPlayer.h"
 #include "SuperPioneer_ConfigStruct.h"
 #include "SuperPioneerRemoteCallObject.h"
+#include "SuperPioneerAnimBlueprint.h"
 #include "SuperPioneerHUD.h"
 #include "UI/FGGameUI.h"
 #include "CoreMinimal.h"
@@ -36,6 +37,9 @@ private:
 	AFGCharacterPlayer* localPlayer;
 	UInputComponent* inputComponent;
 	USuperPioneerHUD* reticleHUD;
+	UClass* vanillaAnimClass;
+	UClass* customAnimClass;
+	USuperPioneerAnimBlueprint* customAnimInstance;
 	const char* reticleHUDWidgetName = "SuperPioneerReticleHUD";
 	const char* superSprintCommandName = "SuperPioneer.SuperSprint";
 	bool isHost;
@@ -51,6 +55,10 @@ private:
 	RCO* GetRCO();
 	AFGCharacterPlayer* GetPlayer();
 	UFGCharacterMovementComponent* GetPlayerMovementComponent();
+	void StartCustomAnimation(ESPAnimState firstState);
+	void ChangeCustomAnimationState(ESPAnimState newState);
+	void EndCustomAnimation();
+	USkeletalMeshComponent* GetMesh1P();
 	virtual void BeginPlay();
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason);
 
