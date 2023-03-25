@@ -597,6 +597,7 @@ void USuperPioneerMovementComponent::GroundSlamPressed() {
 				reticleHUD->ActivateGroundSlam();
 			}
 			StartCustomAnimation(ESPAnimState::SLAM_FLYING);
+			customAnimInstance->groundSlamVector = GetPlayer()->GetCameraComponentForwardVector();
 		}
 	}
 }

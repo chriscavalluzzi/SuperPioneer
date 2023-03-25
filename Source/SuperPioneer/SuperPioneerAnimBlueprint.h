@@ -25,4 +25,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	ESPAnimState animState;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FVector groundSlamVector;
 };
