@@ -26,8 +26,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FVector groundSlamVector;
 
-	UAnimInstance* vanillaAnimInstance;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FPoseSnapshot vanillaPose;
 
-	UFUNCTION(BlueprintPure)
-	FPoseSnapshot GetVanillaPose() const;
 };

@@ -4,6 +4,7 @@
 #include "FGGameMode.h"
 #include "FGCharacterPlayer.h"
 #include "FGPlayerController.h"
+#include "Animation/AnimInstance.h"
 #include "FGCharacterMovementComponent.h"
 
 void FSuperPioneerModule::StartupModule() {
@@ -91,7 +92,6 @@ void FSuperPioneerModule::RegisterHooks() {
 			}
 		}
 	});
-
 }
 
 IMPLEMENT_GAME_MODULE(FSuperPioneerModule, SuperPioneer);

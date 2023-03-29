@@ -37,12 +37,6 @@ private:
 	AFGCharacterPlayer* localPlayer;
 	UInputComponent* inputComponent;
 	USuperPioneerHUD* reticleHUD;
-	UClass* vanillaAnimClass;
-	UClass* customAnimClass;
-	USuperPioneerAnimBlueprint* customAnimInstance;
-
-	UPROPERTY()
-	USkeletalMeshComponent* customSkeletalMesh;
 
 	const char* reticleHUDWidgetName = "SuperPioneerReticleHUD";
 	const char* superSprintCommandName = "SuperPioneer.SuperSprint";
@@ -65,10 +59,18 @@ private:
 
 	// Animation
 
+	UClass* vanillaAnimClass;
+	UClass* customAnimClass;
+	USuperPioneerAnimBlueprint* customAnimInstance;
+
+	UPROPERTY()
+	USkeletalMeshComponent* customSkeletalMesh;
+
 	void SetupCustomAnimationComponent();
 	void ChangeCustomAnimationState(ESPAnimState newState);
 	void EndCustomAnimation();
 	void CustomAnimationTick(float deltaTime);
+	void CaptureVanillaPose();
 
 	// Sprinting
 

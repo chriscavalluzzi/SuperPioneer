@@ -228,7 +228,7 @@ void USuperPioneerMovementComponent::SetupCustomAnimationComponent() {
 	customSkeletalMesh->SetAnimClass(customAnimClass);
 	customSkeletalMesh->RegisterComponent();
 	customAnimInstance = Cast<USuperPioneerAnimBlueprint>(customSkeletalMesh->GetAnimInstance());
-	customAnimInstance->vanillaAnimInstance = mesh1P->GetAnimInstance(); // To grab the vanilla pose later
+	CaptureVanillaPose();
 
 	// Hide original SkeletalMeshComponent (but make sure it keeps updating)
 	mesh1P->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
@@ -256,7 +256,16 @@ void USuperPioneerMovementComponent::EndCustomAnimation() {
 
 void USuperPioneerMovementComponent::CustomAnimationTick(float deltaTime) {
 	if (customSkeletalMesh) {
+		CaptureVanillaPose();
 		customSkeletalMesh->SetRelativeTransform(GetMesh1P()->GetRelativeTransform());
+	}
+}
+
+void USuperPioneerMovementComponent::CaptureVanillaPose() {
+	if (customAnimInstance && GetMesh1P() && GetMesh1P()->GetAnimInstance()) {
+		FPoseSnapshot vanillaPoseSnapshot;
+		GetMesh1P()->GetAnimInstance()->SnapshotPose(vanillaPoseSnapshot);
+		customAnimInstance->vanillaPose = vanillaPoseSnapshot;
 	}
 }
 
