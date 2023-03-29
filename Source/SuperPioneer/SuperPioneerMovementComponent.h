@@ -40,6 +40,10 @@ private:
 	UClass* vanillaAnimClass;
 	UClass* customAnimClass;
 	USuperPioneerAnimBlueprint* customAnimInstance;
+
+	UPROPERTY()
+	USkeletalMeshComponent* customSkeletalMesh;
+
 	const char* reticleHUDWidgetName = "SuperPioneerReticleHUD";
 	const char* superSprintCommandName = "SuperPioneer.SuperSprint";
 	bool isHost;
@@ -55,12 +59,16 @@ private:
 	RCO* GetRCO();
 	AFGCharacterPlayer* GetPlayer();
 	UFGCharacterMovementComponent* GetPlayerMovementComponent();
-	void StartCustomAnimation(ESPAnimState firstState);
-	void ChangeCustomAnimationState(ESPAnimState newState);
-	void EndCustomAnimation();
 	USkeletalMeshComponent* GetMesh1P();
 	virtual void BeginPlay();
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason);
+
+	// Animation
+
+	void SetupCustomAnimationComponent();
+	void ChangeCustomAnimationState(ESPAnimState newState);
+	void EndCustomAnimation();
+	void CustomAnimationTick(float deltaTime);
 
 	// Sprinting
 

@@ -131,6 +131,7 @@ void USuperPioneerMovementComponent::TickComponent(float DeltaTime, enum ELevelT
 	if (config_superSprintEnabled) { SprintTick(DeltaTime); }
 	if (config_superJumpChargingEnabled) { JumpTick(DeltaTime); }
 	GroundSlamTick(DeltaTime);
+	CustomAnimationTick(DeltaTime);
 }
 
 void USuperPioneerMovementComponent::CheckForActionRebind() {
@@ -201,15 +202,46 @@ UFGCharacterMovementComponent* USuperPioneerMovementComponent::GetPlayerMovement
 	return GetPlayer()->GetFGMovementComponent();
 }
 
-void USuperPioneerMovementComponent::StartCustomAnimation(ESPAnimState firstState) {
-	FPoseSnapshot poseSnapshot;
+USkeletalMeshComponent* USuperPioneerMovementComponent::GetMesh1P() {
+	return GetPlayer()->GetMesh1P();
+}
+
+void USuperPioneerMovementComponent::BeginPlay() {
+	AddReticleHUD();
+	SetupCustomAnimationComponent();
+}
+
+void USuperPioneerMovementComponent::EndPlay(const EEndPlayReason::Type EndPlayReason) {
+	isDestroyed = true;
+}
+
+// Animation
+
+void USuperPioneerMovementComponent::SetupCustomAnimationComponent() {
+	if (customAnimInstance) return;
+
 	USkeletalMeshComponent* mesh1P = GetMesh1P();
-	mesh1P->GetAnimClass();
-	mesh1P->GetAnimInstance()->SnapshotPose(poseSnapshot);
-	mesh1P->SetAnimClass(customAnimClass);
-	customAnimInstance = Cast<USuperPioneerAnimBlueprint>(mesh1P->GetAnimInstance());
-	customAnimInstance->entryPose = poseSnapshot;
-	ChangeCustomAnimationState(firstState);
+
+	// Build custom SkeletalMeshComponent
+	customSkeletalMesh = DuplicateObject<USkeletalMeshComponent>(mesh1P, mesh1P->GetOuter(), "SPSkeletalMeshComponent"); // Make sure customSkeletalMesh is a UPROPERTY to avoid GC
+	customSkeletalMesh->AnimScriptInstance = nullptr; // Breaks link to original AnimScriptInstance, ensures it not cleared during SetAnimClass
+	customSkeletalMesh->SetAnimClass(customAnimClass);
+	customSkeletalMesh->RegisterComponent();
+	customAnimInstance = Cast<USuperPioneerAnimBlueprint>(customSkeletalMesh->GetAnimInstance());
+	customAnimInstance->vanillaAnimInstance = mesh1P->GetAnimInstance(); // To grab the vanilla pose later
+
+	// Hide original SkeletalMeshComponent (but make sure it keeps updating)
+	mesh1P->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
+	mesh1P->SetVisibility(false);
+
+	TArray< AFGEquipment* > equipment = GetPlayer()->GetActiveEquipments();
+	for (int i = 0; i < equipment.Num(); i++) {
+		FName socketName = equipment[i]->GetAttachParentSocketName();
+		if (socketName != NAME_None) {
+			UChildActorComponent* socketParent = equipment[i]->GetParentComponent();
+			equipment[i]->AttachToComponent(customSkeletalMesh, FAttachmentTransformRules::KeepRelativeTransform, socketName);
+		}
+	}
 }
 
 void USuperPioneerMovementComponent::ChangeCustomAnimationState(ESPAnimState newState) {
@@ -219,20 +251,13 @@ void USuperPioneerMovementComponent::ChangeCustomAnimationState(ESPAnimState new
 }
 
 void USuperPioneerMovementComponent::EndCustomAnimation() {
-	GetMesh1P()->SetAnimClass(vanillaAnimClass);
-	customAnimInstance = nullptr;
+	ChangeCustomAnimationState(ESPAnimState::VANILLA);
 }
 
-USkeletalMeshComponent* USuperPioneerMovementComponent::GetMesh1P() {
-	return GetPlayer()->GetMesh1P();
-}
-
-void USuperPioneerMovementComponent::BeginPlay() {
-	AddReticleHUD();
-}
-
-void USuperPioneerMovementComponent::EndPlay(const EEndPlayReason::Type EndPlayReason) {
-	isDestroyed = true;
+void USuperPioneerMovementComponent::CustomAnimationTick(float deltaTime) {
+	if (customSkeletalMesh) {
+		customSkeletalMesh->SetRelativeTransform(GetMesh1P()->GetRelativeTransform());
+	}
 }
 
 // Sprinting
@@ -596,7 +621,7 @@ void USuperPioneerMovementComponent::GroundSlamPressed() {
 			if (reticleHUD) {
 				reticleHUD->ActivateGroundSlam();
 			}
-			StartCustomAnimation(ESPAnimState::SLAM_FLYING);
+			ChangeCustomAnimationState(ESPAnimState::SLAM_FLYING);
 			customAnimInstance->groundSlamVector = GetPlayer()->GetCameraComponentForwardVector();
 		}
 	}
