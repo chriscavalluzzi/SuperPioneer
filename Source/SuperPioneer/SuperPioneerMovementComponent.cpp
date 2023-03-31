@@ -228,20 +228,26 @@ void USuperPioneerMovementComponent::SetupCustomAnimationComponent() {
 	customSkeletalMesh->SetAnimClass(customAnimClass);
 	customSkeletalMesh->RegisterComponent();
 	customAnimInstance = Cast<USuperPioneerAnimBlueprint>(customSkeletalMesh->GetAnimInstance());
-	CaptureVanillaPose();
 
 	// Hide original SkeletalMeshComponent (but make sure it keeps updating)
 	mesh1P->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
 	mesh1P->SetVisibility(false);
 
+	CaptureVanillaPose();
+	ReparentEquipment(customSkeletalMesh); // Make 1-frame lag less obvious by reparenting equipment to sockets of the visible USkeletalMeshComponent
+	ChangeCustomAnimationState(ESPAnimState::VANILLA);
+}
+
+void USuperPioneerMovementComponent::ReparentEquipment(USceneComponent* newParent) {
 	TArray< AFGEquipment* > equipment = GetPlayer()->GetActiveEquipments();
 	for (int i = 0; i < equipment.Num(); i++) {
 		FName socketName = equipment[i]->GetAttachParentSocketName();
 		if (socketName != NAME_None) {
-			UChildActorComponent* socketParent = equipment[i]->GetParentComponent();
-			equipment[i]->AttachToComponent(customSkeletalMesh, FAttachmentTransformRules::KeepRelativeTransform, socketName);
+			equipment[i]->AttachToComponent(newParent, FAttachmentTransformRules::KeepRelativeTransform, socketName);
 		}
 	}
+
+	CaptureActiveEquipment();
 }
 
 void USuperPioneerMovementComponent::ChangeCustomAnimationState(ESPAnimState newState) {
@@ -250,14 +256,17 @@ void USuperPioneerMovementComponent::ChangeCustomAnimationState(ESPAnimState new
 	}
 }
 
-void USuperPioneerMovementComponent::EndCustomAnimation() {
-	ChangeCustomAnimationState(ESPAnimState::VANILLA);
-}
-
 void USuperPioneerMovementComponent::CustomAnimationTick(float deltaTime) {
 	if (customSkeletalMesh) {
 		CaptureVanillaPose();
 		customSkeletalMesh->SetRelativeTransform(GetMesh1P()->GetRelativeTransform());
+		if (customSkeletalMesh->IsVisible() && GetPlayer()->GetMainMesh() != GetMesh1P()) {
+			customSkeletalMesh->SetVisibility(false);
+			ReparentEquipment(GetPlayer()->GetMainMesh());
+		} else if (!customSkeletalMesh->IsVisible() && GetPlayer()->GetMainMesh() == GetMesh1P()) {
+			customSkeletalMesh->SetVisibility(true);
+			ReparentEquipment(customSkeletalMesh);
+		}
 	}
 }
 
@@ -266,6 +275,18 @@ void USuperPioneerMovementComponent::CaptureVanillaPose() {
 		FPoseSnapshot vanillaPoseSnapshot;
 		GetMesh1P()->GetAnimInstance()->SnapshotPose(vanillaPoseSnapshot);
 		customAnimInstance->vanillaPose = vanillaPoseSnapshot;
+	}
+}
+
+void USuperPioneerMovementComponent::CaptureActiveEquipment() {
+	if (customAnimInstance) {
+		if (AFGEquipment* armEquipment = GetPlayer()->GetEquipmentInSlot(EEquipmentSlot::ES_ARMS)) {
+			customAnimInstance->armsEquipmentClass = armEquipment->GetClass();
+			customAnimInstance->armsEquipmentActive = true;
+		}
+		else {
+			customAnimInstance->armsEquipmentActive = false;
+		}
 	}
 }
 
@@ -461,6 +482,7 @@ void USuperPioneerMovementComponent::JumpPressed() {
 
 void USuperPioneerMovementComponent::JumpReleased() {
 	if (config_superJumpChargingEnabled && !GetPlayerMovementComponent()->IsSwimming() && CheckIfJumpSafe()) {
+		ChangeCustomAnimationState(ESPAnimState::JUMP_LEAPING);
 		ApplyJumpModifiers();
 		isJumpPrimed = true;
 		GetPlayer()->Jump();
@@ -501,7 +523,7 @@ void USuperPioneerMovementComponent::Invoke_Jump() {
 
 void USuperPioneerMovementComponent::OnLanded() {
 	ResetJumpModifiers();
-	EndCustomAnimation();
+	ChangeCustomAnimationState(ESPAnimState::VANILLA);
 	if (eligibleForSprintResume && isSuperSprintPressed) {
 		// Allow sprint to continue
 	}	else if (isSuperSprintPressed) {
@@ -520,6 +542,10 @@ void USuperPioneerMovementComponent::OnLanded() {
 void USuperPioneerMovementComponent::JumpTick(float deltaTime) {
 	if (isJumpPressed) {
 		jumpHoldDuration += deltaTime;
+		if (jumpHoldDuration > config_superJumpHoldTimeMin) {
+			ChangeCustomAnimationState(ESPAnimState::JUMP_CHARGING);
+			customAnimInstance->maxJumpChargeDuration = config_superJumpHoldTimeMax - config_superJumpHoldTimeMin;
+		}
 	}
 	UpdateJumpChargeIndicator();
 }
@@ -631,6 +657,7 @@ void USuperPioneerMovementComponent::GroundSlamPressed() {
 				reticleHUD->ActivateGroundSlam();
 			}
 			ChangeCustomAnimationState(ESPAnimState::SLAM_FLYING);
+			ReparentEquipment(customSkeletalMesh);
 			customAnimInstance->groundSlamVector = GetPlayer()->GetCameraComponentForwardVector();
 		}
 	}

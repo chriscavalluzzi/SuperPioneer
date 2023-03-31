@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "Equipment/FGEquipment.h"
 #include "SuperPioneerAnimBlueprint.generated.h"
 
 UENUM(BlueprintType)
@@ -9,8 +10,7 @@ enum class ESPAnimState : uint8 {
 	VANILLA = 0			UMETA(DisplayName = "Vanilla"),
 	JUMP_CHARGING		UMETA(DisplayName = "Jump - Charging"),
 	JUMP_LEAPING		UMETA(DisplayName = "Jump - Leaping"),
-	SLAM_FLYING			UMETA(DisplayName = "Slam - Flying"),
-	SLAM_LANDING		UMETA(DisplayName = "Slam - Landing"),
+	SLAM_FLYING			UMETA(DisplayName = "Slam"),
 };
 
 UCLASS()
@@ -20,13 +20,22 @@ class SUPERPIONEER_API USuperPioneerAnimBlueprint : public UAnimInstance
 
 public:
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FPoseSnapshot vanillaPose;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	ESPAnimState animState;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FVector groundSlamVector;
+	bool armsEquipmentActive;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FPoseSnapshot vanillaPose;
+	TSubclassOf< AFGEquipment > armsEquipmentClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float maxJumpChargeDuration;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FVector groundSlamVector;
 
 };

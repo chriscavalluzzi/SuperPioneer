@@ -67,10 +67,12 @@ private:
 	USkeletalMeshComponent* customSkeletalMesh;
 
 	void SetupCustomAnimationComponent();
+	void ReparentEquipment(USceneComponent* newParent);
 	void ChangeCustomAnimationState(ESPAnimState newState);
-	void EndCustomAnimation();
 	void CustomAnimationTick(float deltaTime);
 	void CaptureVanillaPose();
+	void CaptureActiveEquipment();
+	void SwitchVisibleMesh(USkeletalMeshComponent* customSkeletalMesh);
 
 	// Sprinting
 
