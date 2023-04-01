@@ -127,12 +127,14 @@ void USuperPioneerMovementComponent::ReloadConfig() {
 }
 
 void USuperPioneerMovementComponent::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) {
-	CheckForActionRebind();
-	CheckForReticleHUDRebind();
-	if (config_superSprintEnabled) { SprintTick(DeltaTime); }
-	if (config_superJumpChargingEnabled) { JumpTick(DeltaTime); }
-	GroundSlamTick(DeltaTime);
 	CustomAnimationTick(DeltaTime);
+	if (IsSafeToAllowPowers()) {
+		CheckForActionRebind();
+		CheckForReticleHUDRebind();
+		if (config_superSprintEnabled) { SprintTick(DeltaTime); }
+		if (config_superJumpChargingEnabled) { JumpTick(DeltaTime); }
+		GroundSlamTick(DeltaTime);
+	}
 }
 
 void USuperPioneerMovementComponent::CheckForActionRebind() {
@@ -189,6 +191,10 @@ void USuperPioneerMovementComponent::SetIsFalling(bool newIsFalling) {
 	if (customAnimInstance) {
 		customAnimInstance->isFalling = newIsFalling;
 	}
+}
+
+bool USuperPioneerMovementComponent::IsSafeToAllowPowers() {
+	return !GetPlayer()->IsMoveInputIgnored();
 }
 
 RCO* USuperPioneerMovementComponent::GetRCO() {
@@ -540,7 +546,7 @@ void USuperPioneerMovementComponent::ResetJumpModifiers() {
 }
 
 bool USuperPioneerMovementComponent::CheckIfJumpSafe() {
-	return GetPlayer()->CanJumpInternal_Implementation() && !GetPlayer()->IsMoveInputIgnored();
+	return GetPlayer()->CanJumpInternal_Implementation() && IsSafeToAllowPowers();
 }
 
 void USuperPioneerMovementComponent::Invoke_Jump() {
@@ -677,6 +683,7 @@ void USuperPioneerMovementComponent::UpdateJumpChargeIndicator() {
 // Ground Slam
 
 bool USuperPioneerMovementComponent::AttemptGroundSlam() {
+	if (!IsSafeToAllowPowers()) { return false; }
 	isCrouchPressed = true;
 	if (config_groundSlamEnabled) {
 		FVector v = GetPlayer()->GetCameraComponentForwardVector();

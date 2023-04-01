@@ -56,6 +56,7 @@ private:
 	void AddReticleHUD();
 	void CheckForReticleHUDRebind();
 	void SetIsFalling(bool newIsFalling);
+	bool IsSafeToAllowPowers();
 	RCO* GetRCO();
 	AFGCharacterPlayer* GetPlayer();
 	UFGCharacterMovementComponent* GetPlayerMovementComponent();
