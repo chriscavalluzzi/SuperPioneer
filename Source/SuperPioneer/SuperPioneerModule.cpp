@@ -82,6 +82,12 @@ void FSuperPioneerModule::RegisterHooks() {
 			}
 		}
 	});
+	SUBSCRIBE_METHOD(AFGCharacterPlayer::OnActiveEquipmentChangedInSlot, [this](auto& scope, AFGCharacterBase* self, EEquipmentSlot slot) {
+		USuperPioneerMovementComponent* component = GetMovementComponent(self);
+		if (component) {
+			component->OnActiveEquipmentChanged();
+		}
+	});
 	SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterBase::Landed, examplePlayerCharacter, [this](auto& scope, AFGCharacterBase* self, const FHitResult& Hit) {
 		USuperPioneerMovementComponent* component = GetMovementComponent(self);
 		if (component) {

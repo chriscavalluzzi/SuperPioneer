@@ -25,6 +25,9 @@ public:
 	bool CheckAndConsumeJump();
 	void OnLanded();
 	void OnFalling();
+	UFUNCTION()
+	void OnActiveEquipmentChanged();
+	void OnEquipmentEquipped(AFGCharacterPlayer* player, AFGEquipment* equipment);
 	bool AttemptGroundSlam();
 
 protected:
@@ -69,7 +72,7 @@ private:
 	USkeletalMeshComponent* customSkeletalMesh;
 
 	void SetupCustomAnimationComponent();
-	void ReparentEquipment(USceneComponent* newParent);
+	void ReparentEquipment();
 	void ChangeCustomAnimationState(ESPAnimState newState);
 	void CustomAnimationTick(float deltaTime);
 	void CaptureVanillaPose();

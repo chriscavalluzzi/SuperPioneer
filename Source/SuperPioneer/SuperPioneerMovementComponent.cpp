@@ -217,6 +217,9 @@ USkeletalMeshComponent* USuperPioneerMovementComponent::GetMesh1P() {
 void USuperPioneerMovementComponent::BeginPlay() {
 	AddReticleHUD();
 	SetupCustomAnimationComponent();
+	ReparentEquipment();
+
+	GetPlayer()->OnEquipmentEquipped.AddUObject(this, &USuperPioneerMovementComponent::OnEquipmentEquipped);
 }
 
 void USuperPioneerMovementComponent::EndPlay(const EEndPlayReason::Type EndPlayReason) {
@@ -242,11 +245,25 @@ void USuperPioneerMovementComponent::SetupCustomAnimationComponent() {
 	mesh1P->SetVisibility(false);
 
 	CaptureVanillaPose();
-	ReparentEquipment(customSkeletalMesh); // Make 1-frame lag less obvious by reparenting equipment to sockets of the visible USkeletalMeshComponent
+	ReparentEquipment();
 	ChangeCustomAnimationState(ESPAnimState::VANILLA);
 }
 
-void USuperPioneerMovementComponent::ReparentEquipment(USceneComponent* newParent) {
+void USuperPioneerMovementComponent::OnActiveEquipmentChanged() {
+	ReparentEquipment();
+}
+
+void USuperPioneerMovementComponent::OnEquipmentEquipped(AFGCharacterPlayer* player, AFGEquipment* equipment) {
+	ReparentEquipment();
+}
+
+void USuperPioneerMovementComponent::ReparentEquipment() {
+	USceneComponent* newParent;
+	if (customSkeletalMesh && GetPlayer()->GetMainMesh() == GetPlayer()->GetMesh1P()) {
+		newParent = customSkeletalMesh;
+	} else {
+		newParent = GetPlayer()->GetMainMesh();
+	}
 	TArray< AFGEquipment* > equipment = GetPlayer()->GetActiveEquipments();
 	for (int i = 0; i < equipment.Num(); i++) {
 		FName socketName = equipment[i]->GetAttachParentSocketName();
@@ -254,7 +271,6 @@ void USuperPioneerMovementComponent::ReparentEquipment(USceneComponent* newParen
 			equipment[i]->AttachToComponent(newParent, FAttachmentTransformRules::KeepRelativeTransform, socketName);
 		}
 	}
-
 	CaptureActiveEquipment();
 }
 
@@ -270,10 +286,10 @@ void USuperPioneerMovementComponent::CustomAnimationTick(float deltaTime) {
 		customSkeletalMesh->SetRelativeTransform(GetMesh1P()->GetRelativeTransform());
 		if (customSkeletalMesh->IsVisible() && GetPlayer()->GetMainMesh() != GetMesh1P()) {
 			customSkeletalMesh->SetVisibility(false);
-			ReparentEquipment(GetPlayer()->GetMainMesh());
+			ReparentEquipment();
 		} else if (!customSkeletalMesh->IsVisible() && GetPlayer()->GetMainMesh() == GetMesh1P()) {
 			customSkeletalMesh->SetVisibility(true);
-			ReparentEquipment(customSkeletalMesh);
+			ReparentEquipment();
 		}
 	}
 }
@@ -672,7 +688,6 @@ bool USuperPioneerMovementComponent::AttemptGroundSlam() {
 				reticleHUD->ActivateGroundSlam();
 			}
 			ChangeCustomAnimationState(ESPAnimState::SLAM_FLYING);
-			ReparentEquipment(customSkeletalMesh);
 			customAnimInstance->groundSlamVector = GetPlayer()->GetCameraComponentForwardVector();
 		}
 	}
