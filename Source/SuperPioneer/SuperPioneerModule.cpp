@@ -65,6 +65,12 @@ void FSuperPioneerModule::RegisterHooks() {
 			}
 		}
 	});
+	SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterPlayer::CrouchPressed, examplePlayerCharacter, [this](auto& scope, AFGCharacterPlayer* self) {
+		USuperPioneerMovementComponent* component = GetMovementComponent(self);
+		if (component && component->AttemptGroundSlam()) {
+			scope.Cancel();
+		}
+	})
 	SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterPlayer::Jump, examplePlayerCharacter, [this](auto& scope, AFGCharacterPlayer* self) {
 		USuperPioneerMovementComponent* component = GetMovementComponent(self);
 		if (component) {

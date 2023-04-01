@@ -25,6 +25,7 @@ public:
 	bool CheckAndConsumeJump();
 	void OnLanded();
 	void OnFalling();
+	bool AttemptGroundSlam();
 
 protected:
 
@@ -166,15 +167,16 @@ private:
 	float config_groundSlamGroundFriction;
 
 	bool isGroundSlamming;
+	bool isCrouchPressed;
 	FVector groundSlamDirection;
 	bool isGroundSlamIndicatorVisible;
 
-	void GroundSlamPressed();
 	bool IsEligibleForGroundSlam();
 	void GroundSlamTick(float deltaTime);
 	void UpdateGroundSlamIndicator();
 	void GroundSlamLaunch(FVector vector);
 	void GroundSlamAddForce(FVector force);
+	void CrouchReleased();
 
 	// Other
 	bool config_disableFallDamage;

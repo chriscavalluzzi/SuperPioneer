@@ -28,6 +28,7 @@ void USuperPioneerMovementComponent::Reset() {
 	isJumpPrimed = false;
 	isGroundSlamming = false;
 	isGroundSlamIndicatorVisible = false;
+	isCrouchPressed = false;
 	jumpHoldDuration = 0.0;
 	sprintDuration = 0.0;
 	SetIsFalling(false);
@@ -73,7 +74,7 @@ void USuperPioneerMovementComponent::BindActions() {
 	inputComponent->BindAction("Jump_Drift", EInputEvent::IE_Released, this, &USuperPioneerMovementComponent::JumpReleased);
 	inputComponent->BindAction("ToggleSprint", EInputEvent::IE_Pressed, this, &USuperPioneerMovementComponent::NormalSprintPressed);
 	inputComponent->BindAction("ToggleSprint", EInputEvent::IE_Released, this, &USuperPioneerMovementComponent::NormalSprintReleased);
-	inputComponent->BindAction("Crouch", EInputEvent::IE_Pressed, this, &USuperPioneerMovementComponent::GroundSlamPressed);
+	inputComponent->BindAction("Crouch", EInputEvent::IE_Released, this, &USuperPioneerMovementComponent::CrouchReleased);
 }
 
 void USuperPioneerMovementComponent::ReloadConfig() {
@@ -531,6 +532,7 @@ void USuperPioneerMovementComponent::Invoke_Jump() {
 }
 
 void USuperPioneerMovementComponent::OnLanded() {
+	bool wasGroundSlamming = isGroundSlamming;
 	ResetJumpModifiers();
 	ChangeCustomAnimationState(ESPAnimState::VANILLA);
 	if (eligibleForSprintResume && isSuperSprintPressed) {
@@ -546,6 +548,9 @@ void USuperPioneerMovementComponent::OnLanded() {
 	eligibleForSprintResume = false;
 	SetIsFalling(false);
 	isGroundSlamming = false;
+	if (wasGroundSlamming && isCrouchPressed) {
+		GetPlayer()->CrouchPressed();
+	}
 }
 
 void USuperPioneerMovementComponent::JumpTick(float deltaTime) {
@@ -650,7 +655,8 @@ void USuperPioneerMovementComponent::UpdateJumpChargeIndicator() {
 
 // Ground Slam
 
-void USuperPioneerMovementComponent::GroundSlamPressed() {
+bool USuperPioneerMovementComponent::AttemptGroundSlam() {
+	isCrouchPressed = true;
 	if (config_groundSlamEnabled) {
 		FVector v = GetPlayer()->GetCameraComponentForwardVector();
 		if (IsEligibleForGroundSlam()) {
@@ -670,6 +676,7 @@ void USuperPioneerMovementComponent::GroundSlamPressed() {
 			customAnimInstance->groundSlamVector = GetPlayer()->GetCameraComponentForwardVector();
 		}
 	}
+	return isGroundSlamming;
 }
 
 bool USuperPioneerMovementComponent::IsEligibleForGroundSlam() {
@@ -715,6 +722,10 @@ void USuperPioneerMovementComponent::GroundSlamAddForce(FVector force) {
 	if (rco && !isHost) {
 		rco->ServerAddForce(GetPlayer(), force);
 	}
+}
+
+void USuperPioneerMovementComponent::CrouchReleased() {
+	isCrouchPressed = false;
 }
 
 // Utilities
