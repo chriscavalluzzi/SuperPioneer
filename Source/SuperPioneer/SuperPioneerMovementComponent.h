@@ -50,6 +50,7 @@ private:
 	void CheckForActionRebind();
 	void AddReticleHUD();
 	void CheckForReticleHUDRebind();
+	void SetIsFalling(bool newIsFalling);
 	RCO* GetRCO();
 	AFGCharacterPlayer* GetPlayer();
 	UFGCharacterMovementComponent* GetPlayerMovementComponent();

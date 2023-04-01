@@ -26,11 +26,11 @@ void USuperPioneerMovementComponent::Reset() {
 	needToRestartSuperSprint = false;
 	isJumpPressed = false;
 	isJumpPrimed = false;
-	isFalling = false;
 	isGroundSlamming = false;
 	isGroundSlamIndicatorVisible = false;
 	jumpHoldDuration = 0.0;
 	sprintDuration = 0.0;
+	SetIsFalling(false);
 }
 
 void USuperPioneerMovementComponent::Setup(AFGCharacterPlayer* _localPlayer, UInputComponent* _inputComponent, bool _isHost) {
@@ -180,6 +180,13 @@ void USuperPioneerMovementComponent::CheckForReticleHUDRebind() {
 						UpdateGroundSlamIndicator();
 					}
 			}
+	}
+}
+
+void USuperPioneerMovementComponent::SetIsFalling(bool newIsFalling) {
+	isFalling = newIsFalling;
+	if (customAnimInstance) {
+		customAnimInstance->isFalling = newIsFalling;
 	}
 }
 
@@ -376,7 +383,7 @@ void USuperPioneerMovementComponent::Invoke_SprintReleased() {
 }
 
 void USuperPioneerMovementComponent::OnFalling() {
-	isFalling = true;
+	SetIsFalling(true);
 	wasSprintingBeforeSuperSprint = wasNormalSprintingWhenGrounded;
 	eligibleForSprintResume = isSuperSprintPressed;
 }
@@ -391,7 +398,6 @@ void USuperPioneerMovementComponent::SprintTick(float deltaTime) {
 		SetPlayerMaxStepHeight(CalculateMaxStepHeight(sprintDuration));
 	}
 	if (!isFalling && GetPlayerMovementComponent()->IsFalling()) {
-		isFalling = true;
 		OnFalling();
 	}
 	if (needToRestartSuperSprint) {
@@ -482,6 +488,9 @@ void USuperPioneerMovementComponent::JumpPressed() {
 
 void USuperPioneerMovementComponent::JumpReleased() {
 	if (config_superJumpChargingEnabled && !GetPlayerMovementComponent()->IsSwimming() && CheckIfJumpSafe()) {
+		if (customAnimInstance) {
+			customAnimInstance->jumpMagnitude = CalculateCurrentJumpHoldPercentOfMax();
+		}
 		ChangeCustomAnimationState(ESPAnimState::JUMP_LEAPING);
 		ApplyJumpModifiers();
 		isJumpPrimed = true;
@@ -535,7 +544,7 @@ void USuperPioneerMovementComponent::OnLanded() {
 		SetPlayerDeceleration(config_groundSlamGroundFriction);
 	}
 	eligibleForSprintResume = false;
-	isFalling = false;
+	SetIsFalling(false);
 	isGroundSlamming = false;
 }
 

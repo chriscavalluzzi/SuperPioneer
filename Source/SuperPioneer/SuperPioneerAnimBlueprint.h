@@ -36,6 +36,12 @@ public:
 	float maxJumpChargeDuration;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float jumpMagnitude;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FVector groundSlamVector;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	bool isFalling;
 
 };
