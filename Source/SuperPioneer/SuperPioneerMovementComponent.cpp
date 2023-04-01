@@ -249,6 +249,18 @@ void USuperPioneerMovementComponent::SetupCustomAnimationComponent() {
 	ChangeCustomAnimationState(ESPAnimState::VANILLA);
 }
 
+void USuperPioneerMovementComponent::SwitchCameraMode(ECameraMode newMode) {
+	if (customSkeletalMesh) {
+		if (newMode == ECameraMode::ECM_FirstPerson) {
+				customSkeletalMesh->SetVisibility(true);
+		}
+		else if (newMode == ECameraMode::ECM_ThirdPerson) {
+			customSkeletalMesh->SetVisibility(false);
+		}
+	}
+	ReparentEquipment();
+}
+
 void USuperPioneerMovementComponent::OnActiveEquipmentChanged() {
 	ReparentEquipment();
 }
@@ -284,13 +296,6 @@ void USuperPioneerMovementComponent::CustomAnimationTick(float deltaTime) {
 	if (customSkeletalMesh) {
 		CaptureVanillaPose();
 		customSkeletalMesh->SetRelativeTransform(GetMesh1P()->GetRelativeTransform());
-		if (customSkeletalMesh->IsVisible() && GetPlayer()->GetMainMesh() != GetMesh1P()) {
-			customSkeletalMesh->SetVisibility(false);
-			ReparentEquipment();
-		} else if (!customSkeletalMesh->IsVisible() && GetPlayer()->GetMainMesh() == GetMesh1P()) {
-			customSkeletalMesh->SetVisibility(true);
-			ReparentEquipment();
-		}
 	}
 }
 

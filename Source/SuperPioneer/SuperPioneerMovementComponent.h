@@ -28,6 +28,7 @@ public:
 	UFUNCTION()
 	void OnActiveEquipmentChanged();
 	void OnEquipmentEquipped(AFGCharacterPlayer* player, AFGEquipment* equipment);
+	void SwitchCameraMode(ECameraMode newMode);
 	bool AttemptGroundSlam();
 
 protected:

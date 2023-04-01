@@ -88,6 +88,18 @@ void FSuperPioneerModule::RegisterHooks() {
 			component->OnActiveEquipmentChanged();
 		}
 	});
+	SUBSCRIBE_METHOD_AFTER(AFGCharacterPlayer::SetFirstPersonMode, [this](AFGCharacterBase* self) {
+		USuperPioneerMovementComponent* component = GetMovementComponent(self);
+		if (component) {
+			component->SwitchCameraMode(ECameraMode::ECM_FirstPerson);
+		}
+	});
+	SUBSCRIBE_METHOD_AFTER(AFGCharacterPlayer::SetThirdPersonMode, [this](AFGCharacterBase* self) {
+		USuperPioneerMovementComponent* component = GetMovementComponent(self);
+		if (component) {
+			component->SwitchCameraMode(ECameraMode::ECM_ThirdPerson);
+		}
+	});
 	SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterBase::Landed, examplePlayerCharacter, [this](auto& scope, AFGCharacterBase* self, const FHitResult& Hit) {
 		USuperPioneerMovementComponent* component = GetMovementComponent(self);
 		if (component) {
