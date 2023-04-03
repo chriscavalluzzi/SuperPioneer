@@ -73,8 +73,11 @@ private:
 	UPROPERTY()
 	USkeletalMeshComponent* customSkeletalMesh;
 
+	bool config_animationsEnabled;
+
 	void SetupCustomAnimationComponent();
-	void ReparentEquipment();
+	void DestroyCustomAnimationComponent();
+	void ReparentEquipment(USceneComponent* newParent = nullptr);
 	void ChangeCustomAnimationState(ESPAnimState newState);
 	void CustomAnimationTick(float deltaTime);
 	void CaptureVanillaPose();

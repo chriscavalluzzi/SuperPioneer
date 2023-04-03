@@ -4,11 +4,22 @@
 #include "Engine/Engine.h"
 #include "SuperPioneer_ConfigStruct.generated.h"
 
+struct FSuperPioneer_ConfigStruct_general;
 struct FSuperPioneer_ConfigStruct_superSprint;
 struct FSuperPioneer_ConfigStruct_superJumpCharging;
 struct FSuperPioneer_ConfigStruct_superJumpModifications;
 struct FSuperPioneer_ConfigStruct_groundSlam;
-struct FSuperPioneer_ConfigStruct_other;
+
+USTRUCT(BlueprintType)
+struct FSuperPioneer_ConfigStruct_general {
+    GENERATED_BODY()
+public:
+    UPROPERTY(BlueprintReadWrite)
+    bool animationsEnabled;
+
+    UPROPERTY(BlueprintReadWrite)
+    bool disableFallDamage;
+};
 
 USTRUCT(BlueprintType)
 struct FSuperPioneer_ConfigStruct_superSprint {
@@ -99,19 +110,14 @@ public:
     float groundSlamGroundFriction;
 };
 
-USTRUCT(BlueprintType)
-struct FSuperPioneer_ConfigStruct_other {
-    GENERATED_BODY()
-public:
-    UPROPERTY(BlueprintReadWrite)
-    bool disableFallDamage;
-};
-
 /* Struct generated from Mod Configuration Asset '/SuperPioneer/SuperPioneer_Config' */
 USTRUCT(BlueprintType)
 struct FSuperPioneer_ConfigStruct {
     GENERATED_BODY()
 public:
+    UPROPERTY(BlueprintReadWrite)
+    FSuperPioneer_ConfigStruct_general general;
+
     UPROPERTY(BlueprintReadWrite)
     FSuperPioneer_ConfigStruct_superSprint superSprint;
 
@@ -123,9 +129,6 @@ public:
 
     UPROPERTY(BlueprintReadWrite)
     FSuperPioneer_ConfigStruct_groundSlam groundSlam;
-
-    UPROPERTY(BlueprintReadWrite)
-    FSuperPioneer_ConfigStruct_other other;
 
     /* Retrieves active configuration value and returns object of this struct containing it */
     static FSuperPioneer_ConfigStruct GetActiveConfig() {

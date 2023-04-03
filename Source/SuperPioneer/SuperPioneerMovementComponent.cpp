@@ -109,13 +109,20 @@ void USuperPioneerMovementComponent::ReloadConfig() {
 		config_groundSlamAcceleration = SPConfig.groundSlam.groundSlamAcceleration * 100.f;
 		config_groundSlamGroundFriction = SPConfig.groundSlam.groundSlamGroundFriction;
 
-		config_disableFallDamage = SPConfig.other.disableFallDamage;
+		config_disableFallDamage = SPConfig.general.disableFallDamage;
+		config_animationsEnabled = SPConfig.general.animationsEnabled;
 
 		if (!config_superSprintEnabled) {
 			SetPlayerSprintSpeed(defaultMaxSprintSpeed);
 			SetPlayerDeceleration(defaultGroundFriction);
 		} else {
 			SetPlayerDeceleration(config_superSprintGroundFriction);
+		}
+
+		if (config_animationsEnabled) {
+			SetupCustomAnimationComponent();
+		} else {
+			DestroyCustomAnimationComponent();
 		}
 
 		RCO* rco = GetRCO();
@@ -235,7 +242,7 @@ void USuperPioneerMovementComponent::EndPlay(const EEndPlayReason::Type EndPlayR
 // Animation
 
 void USuperPioneerMovementComponent::SetupCustomAnimationComponent() {
-	if (customAnimInstance) return;
+	if (customSkeletalMesh || !config_animationsEnabled) return;
 
 	USkeletalMeshComponent* mesh1P = GetMesh1P();
 
@@ -251,8 +258,19 @@ void USuperPioneerMovementComponent::SetupCustomAnimationComponent() {
 	mesh1P->SetVisibility(false);
 
 	CaptureVanillaPose();
-	ReparentEquipment();
+	ReparentEquipment(customSkeletalMesh);
 	ChangeCustomAnimationState(ESPAnimState::VANILLA);
+}
+
+void USuperPioneerMovementComponent::DestroyCustomAnimationComponent() {
+	if (!customSkeletalMesh) return;
+
+	GetMesh1P()->SetVisibility(true);
+	ReparentEquipment(GetPlayer()->GetMainMesh());
+
+	customSkeletalMesh->DestroyComponent();
+	customSkeletalMesh = nullptr;
+	customAnimInstance = nullptr;
 }
 
 void USuperPioneerMovementComponent::SwitchCameraMode(ECameraMode newMode) {
@@ -275,12 +293,14 @@ void USuperPioneerMovementComponent::OnEquipmentEquipped(AFGCharacterPlayer* pla
 	ReparentEquipment();
 }
 
-void USuperPioneerMovementComponent::ReparentEquipment() {
-	USceneComponent* newParent;
-	if (customSkeletalMesh && GetPlayer()->GetMainMesh() == GetPlayer()->GetMesh1P()) {
-		newParent = customSkeletalMesh;
-	} else {
-		newParent = GetPlayer()->GetMainMesh();
+void USuperPioneerMovementComponent::ReparentEquipment(USceneComponent* newParent) {
+	if (!newParent) {
+		if (customSkeletalMesh && GetPlayer()->GetMainMesh() == GetPlayer()->GetMesh1P()) {
+			newParent = customSkeletalMesh;
+		}
+		else {
+			newParent = GetPlayer()->GetMainMesh();
+		}
 	}
 	TArray< AFGEquipment* > equipment = GetPlayer()->GetActiveEquipments();
 	for (int i = 0; i < equipment.Num(); i++) {
@@ -583,7 +603,7 @@ void USuperPioneerMovementComponent::OnLanded() {
 void USuperPioneerMovementComponent::JumpTick(float deltaTime) {
 	if (isJumpPressed) {
 		jumpHoldDuration += deltaTime;
-		if (jumpHoldDuration > config_superJumpHoldTimeMin) {
+		if (customAnimInstance && jumpHoldDuration > config_superJumpHoldTimeMin) {
 			ChangeCustomAnimationState(ESPAnimState::JUMP_CHARGING);
 			customAnimInstance->maxJumpChargeDuration = config_superJumpHoldTimeMax - config_superJumpHoldTimeMin;
 		}
@@ -700,7 +720,9 @@ bool USuperPioneerMovementComponent::AttemptGroundSlam() {
 				reticleHUD->ActivateGroundSlam();
 			}
 			ChangeCustomAnimationState(ESPAnimState::SLAM_FLYING);
-			customAnimInstance->groundSlamVector = GetPlayer()->GetCameraComponentForwardVector();
+			if (customAnimInstance) {
+				customAnimInstance->groundSlamVector = GetPlayer()->GetCameraComponentForwardVector();
+			}
 		}
 	}
 	return isGroundSlamming;
