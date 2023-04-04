@@ -302,11 +302,14 @@ void USuperPioneerMovementComponent::ReparentEquipment(USceneComponent* newParen
 			newParent = GetPlayer()->GetMainMesh();
 		}
 	}
-	TArray< AFGEquipment* > equipment = GetPlayer()->GetActiveEquipments();
-	for (int i = 0; i < equipment.Num(); i++) {
-		FName socketName = equipment[i]->GetAttachParentSocketName();
-		if (socketName != NAME_None) {
-			equipment[i]->AttachToComponent(newParent, FAttachmentTransformRules::KeepRelativeTransform, socketName);
+	TArray< AFGEquipment* > equipments = GetPlayer()->GetActiveEquipments();
+	for (int i = 0; i < equipments.Num(); i++) {
+		AFGEquipment* equipment = equipments[i];
+		if (IsValid(equipment)) {
+			FName socketName = equipment->GetAttachParentSocketName();
+			if (socketName != NAME_None) {
+				equipment->AttachToComponent(newParent, FAttachmentTransformRules::KeepRelativeTransform, socketName);
+			}
 		}
 	}
 	CaptureActiveEquipment();
