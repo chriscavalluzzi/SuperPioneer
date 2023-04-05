@@ -24,7 +24,7 @@ While in the air and looking downwards, press the crouch button to rocket yourse
 ### 🔧 Customization
 Features can be heavily customized (or disabled) from the in-game menu: Pause Menu → Mod Configs → SuperPioneer
 
-<img src="/Media/config.png" style="width:430px;height:360px;" />
+<img src="/Media/config.png" style="width:465px;height:360px;" />
 
 ### 🌐 Multiplayer
 Multiplayer sessions are supported. Movement and animations look pretty good, and each player can have their own individual settings.
