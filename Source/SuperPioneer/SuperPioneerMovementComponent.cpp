@@ -345,6 +345,7 @@ void USuperPioneerMovementComponent::CaptureActiveEquipment() {
 		else {
 			customAnimInstance->armsEquipmentActive = false;
 		}
+		customAnimInstance->isBuildGunEquipped = GetPlayer()->IsBuildGunEquipped();
 	}
 }
 

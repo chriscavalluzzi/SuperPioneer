@@ -44,4 +44,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	bool isFalling;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	bool isBuildGunEquipped;
+
 };
