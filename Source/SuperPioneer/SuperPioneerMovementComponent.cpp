@@ -317,6 +317,7 @@ void USuperPioneerMovementComponent::ReparentEquipment(USceneComponent* newParen
 
 void USuperPioneerMovementComponent::ChangeCustomAnimationState(ESPAnimState newState) {
 	if (customAnimInstance) {
+		CaptureActiveEquipment();
 		customAnimInstance->animState = newState;
 	}
 }
