@@ -88,6 +88,12 @@ void FSuperPioneerModule::RegisterHooks() {
 			component->OnActiveEquipmentChanged();
 		}
 	});
+	SUBSCRIBE_METHOD_AFTER(AFGCharacterPlayer::ToggleBuildGun, [this](AFGCharacterBase* self) {
+		USuperPioneerMovementComponent* component = GetMovementComponent(self);
+		if (component) {
+			component->OnActiveEquipmentChanged();
+		}
+	});
 	SUBSCRIBE_METHOD_AFTER(AFGCharacterPlayer::SetFirstPersonMode, [this](AFGCharacterBase* self) {
 		USuperPioneerMovementComponent* component = GetMovementComponent(self);
 		if (component) {
