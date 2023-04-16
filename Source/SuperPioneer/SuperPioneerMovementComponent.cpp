@@ -5,6 +5,7 @@
 #include "SuperPioneerRemoteCallObject.h"
 #include "FGPlayerController.h"
 #include "FGCharacterPlayer.h"
+#include "Equipment/FGHoverPack.h"
 #include "FGCharacterMovementComponent.h"
 
 USuperPioneerMovementComponent::USuperPioneerMovementComponent() {
@@ -29,6 +30,7 @@ void USuperPioneerMovementComponent::Reset() {
 	isGroundSlamming = false;
 	isGroundSlamIndicatorVisible = false;
 	isCrouchPressed = false;
+	isHoverPackEquipped = false;
 	jumpHoldDuration = 0.0;
 	sprintDuration = 0.0;
 	SetIsFalling(false);
@@ -135,19 +137,19 @@ void USuperPioneerMovementComponent::ReloadConfig() {
 
 void USuperPioneerMovementComponent::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) {
 	CustomAnimationTick(DeltaTime);
-	if (IsSafeToAllowPowers()) {
-		CheckForActionRebind();
-		CheckForReticleHUDRebind();
-		if (config_superSprintEnabled) { SprintTick(DeltaTime); }
-		if (config_superJumpChargingEnabled) { JumpTick(DeltaTime); }
-		GroundSlamTick(DeltaTime);
-	}
+	CheckForActionRebind();
+	CheckForReticleHUDRebind();
+
+	SprintTick(DeltaTime);
+	JumpTick(DeltaTime);
+	GroundSlamTick(DeltaTime);
 }
 
 void USuperPioneerMovementComponent::CheckForActionRebind() {
 	if (!needToRebindActions && (!IsValid(inputComponent) || inputComponent != GetPlayer()->InputComponent)) {
 		needToRebindActions = true;
 		Reset();
+		ReparentEquipment();
 	} else if (needToRebindActions && IsValid(GetPlayer()->InputComponent)) {
 		inputComponent = GetPlayer()->InputComponent;
 		BindActions();
@@ -201,7 +203,7 @@ void USuperPioneerMovementComponent::SetIsFalling(bool newIsFalling) {
 }
 
 bool USuperPioneerMovementComponent::IsSafeToAllowPowers() {
-	return !GetPlayer()->IsMoveInputIgnored();
+	return !GetPlayer()->IsMoveInputIgnored() && !IsHoverPackHovering();
 }
 
 RCO* USuperPioneerMovementComponent::GetRCO() {
@@ -233,6 +235,7 @@ void USuperPioneerMovementComponent::BeginPlay() {
 	ReparentEquipment();
 
 	GetPlayer()->OnEquipmentEquipped.AddUObject(this, &USuperPioneerMovementComponent::OnEquipmentEquipped);
+	GetPlayer()->OnEquipmentUnequipped.AddUObject(this, &USuperPioneerMovementComponent::OnEquipmentEquipped);
 }
 
 void USuperPioneerMovementComponent::EndPlay(const EEndPlayReason::Type EndPlayReason) {
@@ -348,9 +351,15 @@ void USuperPioneerMovementComponent::CaptureActiveEquipment() {
 		}
 		customAnimInstance->isBuildGunEquipped = GetPlayer()->IsBuildGunEquipped();
 	}
+	AFGEquipment* bodyEquipment = GetPlayer()->GetEquipmentInSlot(EEquipmentSlot::ES_BACK);
+	isHoverPackEquipped = bodyEquipment && bodyEquipment->GetClass()->IsChildOf(AFGHoverPack::StaticClass());
 }
 
 // Sprinting
+
+bool USuperPioneerMovementComponent::IsSafeToAllowSuperSprinting() {
+	return IsSafeToAllowPowers();
+}
 
 void USuperPioneerMovementComponent::SuperSprintPressed() {
 	if (config_superSprintEnabled) {
@@ -388,14 +397,16 @@ void USuperPioneerMovementComponent::NormalSprintReleased() {
 }
 
 void USuperPioneerMovementComponent::StartSuperSprint() {
-	SetPlayerDeceleration(config_superSprintGroundFriction);
-	if (!isFalling) {
-		wasSprintingBeforeSuperSprint = GetIsPlayerSprinting();
+	if (IsSafeToAllowSuperSprinting()) {
+		SetPlayerDeceleration(config_superSprintGroundFriction);
+		if (!isFalling) {
+			wasSprintingBeforeSuperSprint = GetIsPlayerSprinting();
+		}
+		if (!wasSprintingBeforeSuperSprint || GetIsHoldToSprintEnabled()) {
+			Invoke_SprintPressed();
+		}
+		isSuperSprinting = true;
 	}
-	if (!wasSprintingBeforeSuperSprint || GetIsHoldToSprintEnabled()) {
-		Invoke_SprintPressed();
-	}
-	isSuperSprinting = true;
 }
 
 void USuperPioneerMovementComponent::EndSuperSprint() {
@@ -442,20 +453,22 @@ void USuperPioneerMovementComponent::OnFalling() {
 }
 
 void USuperPioneerMovementComponent::SprintTick(float deltaTime) {
-	if (!isSuperSprinting && !GetPlayerMovementComponent()->IsFalling()) {
-		wasNormalSprintingWhenGrounded = GetIsPlayerSprinting();
-	}
-	if (isSuperSprintPressed) {
-		sprintDuration += deltaTime;
-		SetPlayerSprintSpeed(CalculateSprintSpeed(sprintDuration));
-		SetPlayerMaxStepHeight(CalculateMaxStepHeight(sprintDuration));
-	}
-	if (!isFalling && GetPlayerMovementComponent()->IsFalling()) {
-		OnFalling();
-	}
-	if (needToRestartSuperSprint) {
+	if (config_superSprintEnabled) {
+		if (!isSuperSprinting && !GetPlayerMovementComponent()->IsFalling()) {
+			wasNormalSprintingWhenGrounded = GetIsPlayerSprinting();
+		}
+		if (isSuperSprintPressed && IsSafeToAllowSuperSprinting()) {
+			sprintDuration += deltaTime;
+			SetPlayerSprintSpeed(CalculateSprintSpeed(sprintDuration));
+			SetPlayerMaxStepHeight(CalculateMaxStepHeight(sprintDuration));
+		}
+		if (!isFalling && GetPlayerMovementComponent()->IsFalling()) {
+			OnFalling();
+		}
+		if (needToRestartSuperSprint) {
 			Invoke_SprintPressed();
-		needToRestartSuperSprint = false;
+			needToRestartSuperSprint = false;
+		}
 	}
 }
 
@@ -521,6 +534,10 @@ float USuperPioneerMovementComponent::CalculateCurrentSpeedPercentOfMax() {
 
 // Jumping
 
+bool USuperPioneerMovementComponent::IsSafeToAllowSuperJumping() {
+	return IsSafeToAllowPowers() && (!isFalling || !isHoverPackEquipped);
+}
+
 void USuperPioneerMovementComponent::JumpPressed() {
 	if (GetPlayerMovementComponent()->IsSwimming()) {
 		if (config_superJumpModificationsEnabled) {
@@ -544,12 +561,17 @@ void USuperPioneerMovementComponent::JumpReleased() {
 		if (customAnimInstance) {
 			customAnimInstance->jumpMagnitude = CalculateCurrentJumpHoldPercentOfMax();
 		}
-		ChangeCustomAnimationState(ESPAnimState::JUMP_LEAPING);
+		if (isHoverPackEquipped) {
+			ChangeCustomAnimationState(ESPAnimState::VANILLA);
+		} else {
+			ChangeCustomAnimationState(ESPAnimState::JUMP_LEAPING);
+		}
 		ApplyJumpModifiers();
 		isJumpPrimed = true;
 		GetPlayer()->Jump();
 		Invoke_Jump();
 	} else {
+		ChangeCustomAnimationState(ESPAnimState::VANILLA);
 		isJumpPrimed = false;
 	}
 	isJumpPressed = false;
@@ -571,7 +593,7 @@ void USuperPioneerMovementComponent::ResetJumpModifiers() {
 }
 
 bool USuperPioneerMovementComponent::CheckIfJumpSafe() {
-	return GetPlayer()->CanJumpInternal_Implementation() && IsSafeToAllowPowers();
+	return GetPlayer()->CanJumpInternal_Implementation() && IsSafeToAllowSuperJumping();
 }
 
 void USuperPioneerMovementComponent::Invoke_Jump() {
@@ -606,14 +628,16 @@ void USuperPioneerMovementComponent::OnLanded() {
 }
 
 void USuperPioneerMovementComponent::JumpTick(float deltaTime) {
-	if (isJumpPressed) {
-		jumpHoldDuration += deltaTime;
-		if (customAnimInstance && jumpHoldDuration > config_superJumpHoldTimeMin) {
-			ChangeCustomAnimationState(ESPAnimState::JUMP_CHARGING);
-			customAnimInstance->maxJumpChargeDuration = config_superJumpHoldTimeMax - config_superJumpHoldTimeMin;
+	if (config_superJumpChargingEnabled) {
+		if (isJumpPressed && IsSafeToAllowSuperJumping()) {
+			jumpHoldDuration += deltaTime;
+			if (customAnimInstance && jumpHoldDuration > config_superJumpHoldTimeMin && (!isFalling || !isHoverPackEquipped)) {
+				ChangeCustomAnimationState(ESPAnimState::JUMP_CHARGING);
+				customAnimInstance->maxJumpChargeDuration = config_superJumpHoldTimeMax - config_superJumpHoldTimeMin;
+			}
 		}
+		UpdateJumpChargeIndicator();
 	}
-	UpdateJumpChargeIndicator();
 }
 
 bool USuperPioneerMovementComponent::CheckAndConsumeJump() {
@@ -687,13 +711,13 @@ void USuperPioneerMovementComponent::SetPlayerGravityScale(float newGravityScale
 }
 
 void USuperPioneerMovementComponent::UpdateJumpChargeIndicator() {
-	if (config_superJumpChargingUIEnabled && !isJumpChargeIndicatorVisible && isJumpPressed && jumpHoldDuration > config_superJumpHoldTimeMin) {
+	if (config_superJumpChargingUIEnabled && !isJumpChargeIndicatorVisible && isJumpPressed && jumpHoldDuration > config_superJumpHoldTimeMin && IsSafeToAllowSuperJumping()) {
 		if (reticleHUD) {
 			reticleHUD->ShowJumpChargeIndicator();
 			reticleHUD->SetJumpChargeIndicatorValue(CalculateCurrentJumpHoldPercentOfMax());
 			isJumpChargeIndicatorVisible = true;
 		}
-	} else if (isJumpChargeIndicatorVisible && (!isJumpPressed || !IsValid(inputComponent))) {
+	} else if (isJumpChargeIndicatorVisible && (!isJumpPressed || !IsValid(inputComponent) || !IsSafeToAllowSuperJumping())) {
 		if (reticleHUD) {
 			reticleHUD->HideJumpChargeIndicator();
 			isJumpChargeIndicatorVisible = false;
@@ -707,8 +731,12 @@ void USuperPioneerMovementComponent::UpdateJumpChargeIndicator() {
 
 // Ground Slam
 
+bool USuperPioneerMovementComponent::IsSafeToAllowGroundSlam() {
+	return IsSafeToAllowPowers();
+}
+
 bool USuperPioneerMovementComponent::AttemptGroundSlam() {
-	if (!IsSafeToAllowPowers()) { return false; }
+	if (!IsSafeToAllowGroundSlam()) { return false; }
 	isCrouchPressed = true;
 	if (config_groundSlamEnabled) {
 		FVector v = GetPlayer()->GetCameraComponentForwardVector();
@@ -734,13 +762,17 @@ bool USuperPioneerMovementComponent::AttemptGroundSlam() {
 }
 
 bool USuperPioneerMovementComponent::IsEligibleForGroundSlam() {
-	return isFalling && (GetPlayer()->GetCameraComponentForwardVector().Z < -1.0f + (config_groundSlamMaxAngle / 90.0f));
+	return isFalling && IsSafeToAllowGroundSlam() && (GetPlayer()->GetCameraComponentForwardVector().Z < -1.0f + (config_groundSlamMaxAngle / 90.0f));
 }
 
 void USuperPioneerMovementComponent::GroundSlamTick(float deltaTime) {
 	if (config_groundSlamEnabled) {
 		if (isGroundSlamming) {
-			GroundSlamAddForce(groundSlamDirection * config_groundSlamAcceleration);
+			if (IsHoverPackHovering()) {
+				OnLanded(); // Hover started, cancel ground slam
+			} else {
+				GroundSlamAddForce(groundSlamDirection * config_groundSlamAcceleration);
+			}
 		}
 		UpdateGroundSlamIndicator();
 	}
@@ -797,4 +829,15 @@ UUserWidget* USuperPioneerMovementComponent::GetGameUI() {
 		}
 	}
 	return nullptr;
+}
+
+bool USuperPioneerMovementComponent::IsHoverPackHovering() {
+	if (isHoverPackEquipped) {
+		if (AFGEquipment* bodyEquipment = GetPlayer()->GetEquipmentInSlot(EEquipmentSlot::ES_BACK)) {
+			if (AFGHoverPack* hoverPackEquipment = Cast<AFGHoverPack>(bodyEquipment)) {
+				return hoverPackEquipment && (hoverPackEquipment->GetCurrentHoverMode() == EHoverPackMode::HPM_Hover);
+			}
+		}
+	}
+	return false;
 }

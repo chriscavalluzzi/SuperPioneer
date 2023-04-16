@@ -105,6 +105,7 @@ private:
 	float defaultMaxStepHeight;
 	float defaultGroundFriction;
 
+	bool IsSafeToAllowSuperSprinting();
 	void SuperSprintPressed();
 	void SuperSprintReleased();
 	void NormalSprintPressed();
@@ -148,6 +149,7 @@ private:
 	float jumpHoldDuration;
 	bool isJumpChargeIndicatorVisible;
 
+	bool IsSafeToAllowSuperJumping();
 	void JumpPressed();
 	void JumpReleased();
 	void ApplyJumpModifiers();
@@ -179,6 +181,7 @@ private:
 	FVector groundSlamDirection;
 	bool isGroundSlamIndicatorVisible;
 
+	bool IsSafeToAllowGroundSlam();
 	bool IsEligibleForGroundSlam();
 	void GroundSlamTick(float deltaTime);
 	void UpdateGroundSlamIndicator();
@@ -187,10 +190,15 @@ private:
 	void CrouchReleased();
 
 	// Other
+
 	bool config_disableFallDamage;
+
+	bool isHoverPackEquipped;
 
 	// Utilities
 
 	static float lerp(float a, float b, float t);
 	UUserWidget* GetGameUI();
+	bool IsHoverPackHovering();
+
 };
