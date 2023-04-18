@@ -194,6 +194,7 @@ private:
 	bool config_disableFallDamage;
 
 	bool isHoverPackEquipped;
+	bool wasHoverPackHoveringLastTick;
 
 	// Utilities
 

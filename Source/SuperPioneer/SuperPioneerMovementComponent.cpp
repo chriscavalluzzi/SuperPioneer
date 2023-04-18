@@ -31,6 +31,7 @@ void USuperPioneerMovementComponent::Reset() {
 	isGroundSlamIndicatorVisible = false;
 	isCrouchPressed = false;
 	isHoverPackEquipped = false;
+	wasHoverPackHoveringLastTick = false;
 	jumpHoldDuration = 0.0;
 	sprintDuration = 0.0;
 	SetIsFalling(false);
@@ -143,6 +144,8 @@ void USuperPioneerMovementComponent::TickComponent(float DeltaTime, enum ELevelT
 	SprintTick(DeltaTime);
 	JumpTick(DeltaTime);
 	GroundSlamTick(DeltaTime);
+
+	wasHoverPackHoveringLastTick = IsHoverPackHovering();
 }
 
 void USuperPioneerMovementComponent::CheckForActionRebind() {
@@ -732,7 +735,7 @@ void USuperPioneerMovementComponent::UpdateJumpChargeIndicator() {
 // Ground Slam
 
 bool USuperPioneerMovementComponent::IsSafeToAllowGroundSlam() {
-	return IsSafeToAllowPowers();
+	return IsSafeToAllowPowers() && !wasHoverPackHoveringLastTick;
 }
 
 bool USuperPioneerMovementComponent::AttemptGroundSlam() {
