@@ -75,6 +75,7 @@ private:
 
 	bool config_animationsEnabled;
 
+	void CheckForCustomAnimationToggle();
 	void SetupCustomAnimationComponent();
 	void DestroyCustomAnimationComponent();
 	void ReparentEquipment(USceneComponent* newParent = nullptr);

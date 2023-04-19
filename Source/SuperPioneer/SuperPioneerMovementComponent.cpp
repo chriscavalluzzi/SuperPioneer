@@ -114,18 +114,13 @@ void USuperPioneerMovementComponent::ReloadConfig() {
 
 		config_disableFallDamage = SPConfig.general.disableFallDamage;
 		config_animationsEnabled = SPConfig.general.animationsEnabled;
+		CheckForCustomAnimationToggle();
 
 		if (!config_superSprintEnabled) {
 			SetPlayerSprintSpeed(defaultMaxSprintSpeed);
 			SetPlayerDeceleration(defaultGroundFriction);
 		} else {
 			SetPlayerDeceleration(config_superSprintGroundFriction);
-		}
-
-		if (config_animationsEnabled) {
-			SetupCustomAnimationComponent();
-		} else {
-			DestroyCustomAnimationComponent();
 		}
 
 		RCO* rco = GetRCO();
@@ -234,7 +229,7 @@ USkeletalMeshComponent* USuperPioneerMovementComponent::GetMesh1P() {
 
 void USuperPioneerMovementComponent::BeginPlay() {
 	AddReticleHUD();
-	SetupCustomAnimationComponent();
+	CheckForCustomAnimationToggle();
 	ReparentEquipment();
 
 	GetPlayer()->OnEquipmentEquipped.AddUObject(this, &USuperPioneerMovementComponent::OnEquipmentEquipped);
@@ -246,6 +241,15 @@ void USuperPioneerMovementComponent::EndPlay(const EEndPlayReason::Type EndPlayR
 }
 
 // Animation
+
+void USuperPioneerMovementComponent::CheckForCustomAnimationToggle() {
+	bool eligableForCustomAnimations = config_animationsEnabled && !isHoverPackEquipped;
+	if (!customAnimInstance && eligableForCustomAnimations) {
+		SetupCustomAnimationComponent();
+	} else if (customAnimInstance && !eligableForCustomAnimations) {
+		DestroyCustomAnimationComponent();
+	}
+}
 
 void USuperPioneerMovementComponent::SetupCustomAnimationComponent() {
 	if (customSkeletalMesh || !config_animationsEnabled) return;
@@ -271,12 +275,13 @@ void USuperPioneerMovementComponent::SetupCustomAnimationComponent() {
 void USuperPioneerMovementComponent::DestroyCustomAnimationComponent() {
 	if (!customSkeletalMesh) return;
 
+	customAnimInstance = nullptr;
+
 	GetMesh1P()->SetVisibility(true);
 	ReparentEquipment(GetPlayer()->GetMainMesh());
 
 	customSkeletalMesh->DestroyComponent();
 	customSkeletalMesh = nullptr;
-	customAnimInstance = nullptr;
 }
 
 void USuperPioneerMovementComponent::SwitchCameraMode(ECameraMode newMode) {
@@ -322,7 +327,7 @@ void USuperPioneerMovementComponent::ReparentEquipment(USceneComponent* newParen
 }
 
 void USuperPioneerMovementComponent::ChangeCustomAnimationState(ESPAnimState newState) {
-	if (customAnimInstance) {
+	if (customAnimInstance && newState != customAnimInstance->animState) {
 		CaptureActiveEquipment();
 		customAnimInstance->animState = newState;
 	}
@@ -344,6 +349,10 @@ void USuperPioneerMovementComponent::CaptureVanillaPose() {
 }
 
 void USuperPioneerMovementComponent::CaptureActiveEquipment() {
+	AFGEquipment* bodyEquipment = GetPlayer()->GetEquipmentInSlot(EEquipmentSlot::ES_BACK);
+	isHoverPackEquipped = bodyEquipment && bodyEquipment->GetClass()->IsChildOf(AFGHoverPack::StaticClass());
+	CheckForCustomAnimationToggle();
+
 	if (customAnimInstance) {
 		if (AFGEquipment* armEquipment = GetPlayer()->GetEquipmentInSlot(EEquipmentSlot::ES_ARMS)) {
 			customAnimInstance->armsEquipmentClass = armEquipment->GetClass();
@@ -354,8 +363,6 @@ void USuperPioneerMovementComponent::CaptureActiveEquipment() {
 		}
 		customAnimInstance->isBuildGunEquipped = GetPlayer()->IsBuildGunEquipped();
 	}
-	AFGEquipment* bodyEquipment = GetPlayer()->GetEquipmentInSlot(EEquipmentSlot::ES_BACK);
-	isHoverPackEquipped = bodyEquipment && bodyEquipment->GetClass()->IsChildOf(AFGHoverPack::StaticClass());
 }
 
 // Sprinting
