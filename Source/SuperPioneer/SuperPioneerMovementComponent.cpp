@@ -637,6 +637,12 @@ void USuperPioneerMovementComponent::OnLanded() {
 	}
 }
 
+void USuperPioneerMovementComponent::CheckForHoverPackLand(EMovementMode previousMovementMode, uint8 previousCustomMode, EMovementMode newMovementMode, uint8 newCustomMode) {
+	if (previousMovementMode == EMovementMode::MOVE_Custom && previousCustomMode == 4 && newMovementMode == EMovementMode::MOVE_Walking) {
+		OnLanded();
+	}
+}
+
 void USuperPioneerMovementComponent::JumpTick(float deltaTime) {
 	if (config_superJumpChargingEnabled) {
 		if (isJumpPressed && IsSafeToAllowSuperJumping()) {

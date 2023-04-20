@@ -5,6 +5,7 @@
 #include "FGCharacterPlayer.h"
 #include "FGPlayerController.h"
 #include "Animation/AnimInstance.h"
+#include "Equipment/FGHoverPack.h"
 #include "FGCharacterMovementComponent.h"
 
 void FSuperPioneerModule::StartupModule() {
@@ -122,6 +123,15 @@ void FSuperPioneerModule::RegisterHooks() {
 			}
 		}
 	});
+
+	AFGHoverPack* exampleHoverPack = GetMutableDefault<AFGHoverPack>();
+
+	SUBSCRIBE_METHOD_VIRTUAL(AFGHoverPack::OnCharacterMovementModeChanged, exampleHoverPack, [this](auto& scope, const AFGHoverPack* self, EMovementMode PreviousMovementMode, uint8 PreviousCustomMode, EMovementMode NewMovementMode, uint8 NewCustomMode) {
+		if (IsValid(localSPMovementComponent)) {
+			localSPMovementComponent->CheckForHoverPackLand(PreviousMovementMode, PreviousCustomMode, NewMovementMode, NewCustomMode);
+		}
+	});
+
 }
 
 IMPLEMENT_GAME_MODULE(FSuperPioneerModule, SuperPioneer);

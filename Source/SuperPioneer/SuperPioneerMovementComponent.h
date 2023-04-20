@@ -1,5 +1,8 @@
 #pragma once
 
+#define SPLOG(LogString, ...) UE_LOG(LogTemp,Warning,TEXT(LogString),__VA_ARGS__)
+#define SPLOG_BOOL(LogString, TestBool) SPLOG(LogString, TestBool ? TEXT("true") : TEXT("false"))
+
 #include "FGCharacterPlayer.h"
 #include "SuperPioneer_ConfigStruct.h"
 #include "SuperPioneerRemoteCallObject.h"
@@ -24,6 +27,7 @@ public:
 	void ReloadConfig();
 	bool CheckAndConsumeJump();
 	void OnLanded();
+	void CheckForHoverPackLand(EMovementMode previousMovementMode, uint8 previousCustomMode, EMovementMode newMovementMode, uint8 newCustomMode);
 	void OnFalling();
 	UFUNCTION()
 	void OnActiveEquipmentChanged();
