@@ -63,11 +63,11 @@ void USuperPioneerRemoteCallObject::ServerSetFallDamageDisabled_Implementation(b
 }
 
 void USuperPioneerRemoteCallObject::ServerSprintPressed_Implementation(AFGCharacterPlayer* player) {
-	player->SprintPressed();
+	//SPTODOplayer->SprintPressed();
 }
 
 void USuperPioneerRemoteCallObject::ServerSprintReleased_Implementation(AFGCharacterPlayer* player) {
-	player->SprintReleased();
+	//SPTODOplayer->SprintReleased();
 }
 
 void USuperPioneerRemoteCallObject::ServerDoJump_Implementation(AFGCharacterPlayer* player) {

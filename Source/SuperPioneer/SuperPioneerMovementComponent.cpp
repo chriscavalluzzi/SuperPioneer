@@ -439,7 +439,7 @@ void USuperPioneerMovementComponent::EndSuperSprint() {
 }
 
 void USuperPioneerMovementComponent::Invoke_SprintPressed() {
-	GetPlayer()->SprintPressed();
+	//SPTODOGetPlayer()->SprintPressed();
 
 	RCO* rco = GetRCO();
 	if (rco && !isHost) {
@@ -448,7 +448,7 @@ void USuperPioneerMovementComponent::Invoke_SprintPressed() {
 }
 
 void USuperPioneerMovementComponent::Invoke_SprintReleased() {
-	GetPlayer()->SprintReleased();
+	//SPTODOGetPlayer()->SprintReleased();
 
 	RCO* rco = GetRCO();
 	if (rco && !isHost) {
@@ -633,7 +633,7 @@ void USuperPioneerMovementComponent::OnLanded() {
 	SetIsFalling(false);
 	isGroundSlamming = false;
 	if (wasGroundSlamming && isCrouchPressed) {
-		GetPlayer()->CrouchPressed();
+		//SPTODOGetPlayer()->CrouchPressed();
 	}
 }
 
