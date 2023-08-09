@@ -67,12 +67,12 @@ void FSuperPioneerModule::RegisterHooks() {
 			}
 		}
 	});
-	/*SPTODOSUBSCRIBE_METHOD_VIRTUAL(AFGCharacterPlayer::CrouchPressed, examplePlayerCharacter, [this](auto& scope, AFGCharacterPlayer* self) {
+	SUBSCRIBE_METHOD(AFGCharacterPlayer::Input_Crouch, [this](auto& scope, AFGCharacterPlayer* self, const FInputActionValue& actionValue) {
 		USuperPioneerMovementComponent* component = GetMovementComponent(self);
 		if (component && component->AttemptGroundSlam()) {
 			scope.Cancel();
 		}
-	})*/
+	})
 	SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterPlayer::Jump, examplePlayerCharacter, [this](auto& scope, AFGCharacterPlayer* self) {
 		USuperPioneerMovementComponent* component = GetMovementComponent(self);
 		if (component) {
