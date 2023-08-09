@@ -44,6 +44,7 @@ void FSuperPioneerModule::RegisterHooks() {
 
 	AFGCharacterPlayer* examplePlayerCharacter = GetMutableDefault<AFGCharacterPlayer>();
 
+	//SPTODO Replace with AFGCharacterPlayer::OnPlayerInputInitialized
 	SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterPlayer::SetupPlayerInputComponent, examplePlayerCharacter, [this](auto& scope, AFGCharacterPlayer* self, UInputComponent* PlayerInputComponent) {
 		USuperPioneerMovementComponent* component = GetMovementComponent(self);
 		if (!component) {

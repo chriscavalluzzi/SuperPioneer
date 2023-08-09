@@ -4,6 +4,7 @@
 #define SPLOG_BOOL(LogString, TestBool) SPLOG(LogString, TestBool ? TEXT("true") : TEXT("false"))
 
 #include "FGCharacterPlayer.h"
+#include "Input/FGInputMappingContext.h"
 #include "SuperPioneer_ConfigStruct.h"
 #include "SuperPioneerRemoteCallObject.h"
 #include "SuperPioneerAnimBlueprint.h"
@@ -47,6 +48,9 @@ private:
 	UInputComponent* inputComponent;
 	USuperPioneerHUD* reticleHUD;
 
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TSoftObjectPtr<UFGInputMappingContext> SPMovementInputMapping;
+
 	const char* reticleHUDWidgetName = "SuperPioneerReticleHUD";
 	const char* superSprintCommandName = "SuperPioneer.SuperSprint";
 	bool isHost;
@@ -55,7 +59,7 @@ private:
 	bool isUIBuilt = false;
 
 	void Reset();
-	void BindActions();
+	void BindActions(AFGCharacterPlayer* player);
 	void CheckForActionRebind();
 	void AddReticleHUD();
 	void CheckForReticleHUDRebind();

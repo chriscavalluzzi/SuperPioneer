@@ -3,6 +3,8 @@
 #include <cmath>
 #include <string>
 #include "SuperPioneerRemoteCallObject.h"
+#include "EnhancedInputComponent.h"
+#include "FGInputSettings.h"
 #include "FGPlayerController.h"
 #include "FGCharacterPlayer.h"
 #include "Equipment/FGHoverPack.h"
@@ -67,17 +69,41 @@ void USuperPioneerMovementComponent::Setup(AFGCharacterPlayer* _localPlayer, UIn
 
 	ReloadConfig();
 
-	BindActions();
+	BindActions(_localPlayer);
 }
 
-void USuperPioneerMovementComponent::BindActions() {
+void USuperPioneerMovementComponent::BindActions(AFGCharacterPlayer* player) {
+
+	UE_LOG(LogTemp, Warning, TEXT("[SP] Binding input actions..."))
+
+	const UFGInputSettings* inputSettings = UFGInputSettings::Get();
+	UInputAction* sprintAction = inputSettings->GetInputActionForTag(FGameplayTag::RequestGameplayTag(TEXT("Input.PlayerMovement.Sprint")));
+	UInputAction* crouchAction = inputSettings->GetInputActionForTag(FGameplayTag::RequestGameplayTag(TEXT("Input.PlayerMovement.Crouch")));
+	UInputAction* jumpAction = inputSettings->GetInputActionForTag(FGameplayTag::RequestGameplayTag(TEXT("Input.PlayerMovement.Jump")));
+
+	UEnhancedInputComponent* enhancedInput = Cast<UEnhancedInputComponent>(this->inputComponent);
+	enhancedInput->BindAction(jumpAction, ETriggerEvent::Triggered, this, &USuperPioneerMovementComponent::JumpPressed);
+	enhancedInput->BindAction(jumpAction, ETriggerEvent::Completed, this, &USuperPioneerMovementComponent::JumpReleased);
+	enhancedInput->BindAction(sprintAction, ETriggerEvent::Triggered, this, &USuperPioneerMovementComponent::NormalSprintPressed);
+	enhancedInput->BindAction(sprintAction, ETriggerEvent::Completed, this, &USuperPioneerMovementComponent::NormalSprintReleased);
+	enhancedInput->BindAction(crouchAction, ETriggerEvent::Completed, this, &USuperPioneerMovementComponent::CrouchReleased);
+
+	/*SPTODO Attach SPMovementInputMapping
+	if (ULocalPlayer* localPlayer = Cast<ULocalPlayer>(player)) {
+		if (UEnhancedInputLocalPlayerSubsystem* InputSystem = localPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>()) {
+			if (!InputMapping.IsNull()) {
+				InputSystem->AddMappingContext(InputMapping.LoadSynchronous(), Priority);
+			}
+		}
+	}
+
+	//SPMovementInputMapping.Get()
+	*/
+
+	/*SPTODO Replace these
 	inputComponent->BindAction(superSprintCommandName, EInputEvent::IE_Pressed, this, &USuperPioneerMovementComponent::SuperSprintPressed);
 	inputComponent->BindAction(superSprintCommandName, EInputEvent::IE_Released, this, &USuperPioneerMovementComponent::SuperSprintReleased);
-	inputComponent->BindAction("Jump_Drift", EInputEvent::IE_Pressed, this, &USuperPioneerMovementComponent::JumpPressed);
-	inputComponent->BindAction("Jump_Drift", EInputEvent::IE_Released, this, &USuperPioneerMovementComponent::JumpReleased);
-	inputComponent->BindAction("ToggleSprint", EInputEvent::IE_Pressed, this, &USuperPioneerMovementComponent::NormalSprintPressed);
-	inputComponent->BindAction("ToggleSprint", EInputEvent::IE_Released, this, &USuperPioneerMovementComponent::NormalSprintReleased);
-	inputComponent->BindAction("Crouch", EInputEvent::IE_Released, this, &USuperPioneerMovementComponent::CrouchReleased);
+	*/
 }
 
 void USuperPioneerMovementComponent::ReloadConfig() {
@@ -150,7 +176,7 @@ void USuperPioneerMovementComponent::CheckForActionRebind() {
 		ReparentEquipment();
 	} else if (needToRebindActions && IsValid(GetPlayer()->InputComponent)) {
 		inputComponent = GetPlayer()->InputComponent;
-		BindActions();
+		BindActions(GetPlayer());
 		needToRebindActions = false;
 	}
 }
