@@ -48,9 +48,6 @@ private:
 	UInputComponent* inputComponent;
 	USuperPioneerHUD* reticleHUD;
 
-	UPROPERTY(EditAnywhere, Category = "Input")
-	TSoftObjectPtr<UFGInputMappingContext> SPMovementInputMapping;
-
 	const char* reticleHUDWidgetName = "SuperPioneerReticleHUD";
 	const char* superSprintCommandName = "SuperPioneer.SuperSprint";
 	bool isHost;

@@ -4,6 +4,7 @@
 #include <string>
 #include "SuperPioneerRemoteCallObject.h"
 #include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
 #include "FGInputSettings.h"
 #include "FGPlayerController.h"
 #include "FGCharacterPlayer.h"
@@ -76,6 +77,8 @@ void USuperPioneerMovementComponent::BindActions(AFGCharacterPlayer* player) {
 
 	UE_LOG(LogTemp, Warning, TEXT("[SP] Binding input actions..."))
 
+	// Vanilla actions
+
 	const UFGInputSettings* inputSettings = UFGInputSettings::Get();
 	UInputAction* sprintAction = inputSettings->GetInputActionForTag(FGameplayTag::RequestGameplayTag(TEXT("Input.PlayerMovement.Sprint")));
 	UInputAction* crouchAction = inputSettings->GetInputActionForTag(FGameplayTag::RequestGameplayTag(TEXT("Input.PlayerMovement.Crouch")));
@@ -88,22 +91,28 @@ void USuperPioneerMovementComponent::BindActions(AFGCharacterPlayer* player) {
 	enhancedInput->BindAction(sprintAction, ETriggerEvent::Completed, this, &USuperPioneerMovementComponent::NormalSprintReleased);
 	enhancedInput->BindAction(crouchAction, ETriggerEvent::Completed, this, &USuperPioneerMovementComponent::CrouchReleased);
 
-	/*SPTODO Attach SPMovementInputMapping
-	if (ULocalPlayer* localPlayer = Cast<ULocalPlayer>(player)) {
-		if (UEnhancedInputLocalPlayerSubsystem* InputSystem = localPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>()) {
-			if (!InputMapping.IsNull()) {
-				InputSystem->AddMappingContext(InputMapping.LoadSynchronous(), Priority);
+	// Custom actions
+
+	// Load movement mapping context
+	FSoftObjectPath SPMovementInputMappingPath(TEXT("/Script/FactoryGame.FGInputMappingContext'/SuperPioneer/Input/MC_SuperPioneerPlayerMovement.MC_SuperPioneerPlayerMovement'"));
+	UFGInputMappingContext* SPMovementInputMapping = Cast<UFGInputMappingContext>(SPMovementInputMappingPath.ResolveObject());
+	if (SPMovementInputMapping == nullptr) {
+		SPMovementInputMapping = CastChecked<UFGInputMappingContext>(SPMovementInputMappingPath.TryLoad());
+	}
+
+	// Add mapping context to player
+	if (ULocalPlayer* localPlayerCast = Cast<ULocalPlayer>(player)) {
+		if (UEnhancedInputLocalPlayerSubsystem* InputSystem = localPlayerCast->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>()) {
+			if (SPMovementInputMapping) {
+				InputSystem->AddMappingContext(SPMovementInputMapping, 0);
 			}
 		}
 	}
 
-	//SPMovementInputMapping.Get()
-	*/
-
-	/*SPTODO Replace these
-	inputComponent->BindAction(superSprintCommandName, EInputEvent::IE_Pressed, this, &USuperPioneerMovementComponent::SuperSprintPressed);
-	inputComponent->BindAction(superSprintCommandName, EInputEvent::IE_Released, this, &USuperPioneerMovementComponent::SuperSprintReleased);
-	*/
+	// Bind action functions
+	const UInputAction* superSprintAction = SPMovementInputMapping->GetMapping(0).Action.Get();
+	enhancedInput->BindAction(superSprintAction, ETriggerEvent::Started, this, &USuperPioneerMovementComponent::SuperSprintPressed);
+	enhancedInput->BindAction(superSprintAction, ETriggerEvent::Completed, this, &USuperPioneerMovementComponent::SuperSprintReleased);
 }
 
 void USuperPioneerMovementComponent::ReloadConfig() {
@@ -398,6 +407,7 @@ bool USuperPioneerMovementComponent::IsSafeToAllowSuperSprinting() {
 }
 
 void USuperPioneerMovementComponent::SuperSprintPressed() {
+	UE_LOG(LogTemp, Warning, TEXT(">>> PRESSED"))
 	if (config_superSprintEnabled) {
 		isSuperSprintPressed = true;
 		if (eligibleForSprintResume) {
@@ -410,6 +420,7 @@ void USuperPioneerMovementComponent::SuperSprintPressed() {
 }
 
 void USuperPioneerMovementComponent::SuperSprintReleased() {
+	UE_LOG(LogTemp, Warning, TEXT(">>> RELEASED"))
 	if (config_superSprintEnabled) {
 		isSuperSprintPressed = false;
 		if (!GetPlayerMovementComponent()->IsFalling()) {
