@@ -407,7 +407,6 @@ bool USuperPioneerMovementComponent::IsSafeToAllowSuperSprinting() {
 }
 
 void USuperPioneerMovementComponent::SuperSprintPressed() {
-	UE_LOG(LogTemp, Warning, TEXT(">>> PRESSED"))
 	if (config_superSprintEnabled) {
 		isSuperSprintPressed = true;
 		if (eligibleForSprintResume) {
@@ -420,7 +419,6 @@ void USuperPioneerMovementComponent::SuperSprintPressed() {
 }
 
 void USuperPioneerMovementComponent::SuperSprintReleased() {
-	UE_LOG(LogTemp, Warning, TEXT(">>> RELEASED"))
 	if (config_superSprintEnabled) {
 		isSuperSprintPressed = false;
 		if (!GetPlayerMovementComponent()->IsFalling()) {
@@ -476,7 +474,7 @@ void USuperPioneerMovementComponent::EndSuperSprint() {
 }
 
 void USuperPioneerMovementComponent::Invoke_SprintPressed() {
-	//SPTODOGetPlayer()->SprintPressed();
+	GetPlayer()->Input_Sprint(true);
 
 	RCO* rco = GetRCO();
 	if (rco && !isHost) {
@@ -485,7 +483,7 @@ void USuperPioneerMovementComponent::Invoke_SprintPressed() {
 }
 
 void USuperPioneerMovementComponent::Invoke_SprintReleased() {
-	//SPTODOGetPlayer()->SprintReleased();
+	GetPlayer()->Input_Sprint(false);
 
 	RCO* rco = GetRCO();
 	if (rco && !isHost) {
@@ -670,7 +668,7 @@ void USuperPioneerMovementComponent::OnLanded() {
 	SetIsFalling(false);
 	isGroundSlamming = false;
 	if (wasGroundSlamming && isCrouchPressed) {
-		//SPTODOGetPlayer()->CrouchPressed();
+		GetPlayer()->Input_Crouch(true);
 	}
 }
 
