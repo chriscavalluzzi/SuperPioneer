@@ -23,7 +23,37 @@ USuperPioneerMovementComponent* FSuperPioneerModule::GetMovementComponent(AActor
 	return nullptr;
 }
 
+void FSuperPioneerModule::SetupMovementComponent(AFGCharacterPlayer* player, UInputComponent* inputComponent) {
+	USuperPioneerMovementComponent* component = GetMovementComponent(player);
+	if (!component) {
+		// After each player's InputComponent is ready, setup the movement component and tie it to the player
+		// Called after every spawn
+		UE_LOG(LogTemp, Warning, TEXT("[SP] New player object created, starting component setup"))
+
+		bool isHost = false;
+		UWorld* world = player->GetWorld();
+		AGameModeBase* gm = UGameplayStatics::GetGameMode(world);
+		if (gm && gm->HasAuthority()) {
+			isHost = true;
+		}
+
+		USuperPioneerMovementComponent* newComponent = NewObject<USuperPioneerMovementComponent>(player, SPMovementComponentName);
+		newComponent->Setup(player, inputComponent, isHost);
+		newComponent->RegisterComponent();
+
+		if (player->IsLocallyControlled()) {
+			if (localSPMovementComponent && IsValid(localSPMovementComponent)) {
+				UE_LOG(LogTemp, Warning, TEXT("[SP] Destroying old component"))
+				localSPMovementComponent->DestroyComponent();
+			}
+			localSPMovementComponent = newComponent;
+		}
+	}
+}
+
 void FSuperPioneerModule::RegisterHooks() {
+
+	AFGCharacterPlayer::OnPlayerInputInitialized.AddRaw(this,&FSuperPioneerModule::SetupMovementComponent);
 
 	AFGGameMode * exampleGameMode = GetMutableDefault<AFGGameMode>();
 
@@ -44,29 +74,6 @@ void FSuperPioneerModule::RegisterHooks() {
 
 	AFGCharacterPlayer* examplePlayerCharacter = GetMutableDefault<AFGCharacterPlayer>();
 
-	//SPTODO Replace with AFGCharacterPlayer::OnPlayerInputInitialized
-	SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterPlayer::SetupPlayerInputComponent, examplePlayerCharacter, [this](auto& scope, AFGCharacterPlayer* self, UInputComponent* PlayerInputComponent) {
-		USuperPioneerMovementComponent* component = GetMovementComponent(self);
-		if (!component) {
-			// After each player's InputComponent is ready, setup the movement component and tie it to the player
-			// Called after every spawn
-			UE_LOG(LogTemp, Warning, TEXT("[SP] New player object created, starting component setup"))
-
-			bool isHost = false;
-			UWorld* world = self->GetWorld();
-			AGameModeBase* gm = UGameplayStatics::GetGameMode(world);
-			if (gm && gm->HasAuthority()) {
-				isHost = true;
-			}
-
-			USuperPioneerMovementComponent* newComponent = NewObject<USuperPioneerMovementComponent>(self, SPMovementComponentName);
-			newComponent->Setup(self, PlayerInputComponent, isHost);
-			newComponent->RegisterComponent();
-			if (self->IsLocallyControlled()) {
-				localSPMovementComponent = newComponent;
-			}
-		}
-	});
 	SUBSCRIBE_METHOD(AFGCharacterPlayer::Input_Crouch, [this](auto& scope, AFGCharacterPlayer* self, const FInputActionValue& actionValue) {
 		USuperPioneerMovementComponent* component = GetMovementComponent(self);
 		if (component && component->AttemptGroundSlam()) {

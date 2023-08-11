@@ -15,6 +15,7 @@ private:
 	const FName SPMovementComponentName = FName(TEXT("SuperPioneer.MovementComponent"));
 	USuperPioneerMovementComponent* localSPMovementComponent;
 
+	void SetupMovementComponent(AFGCharacterPlayer* player, UInputComponent* inputComponent);
 	void RegisterHooks();
 	USuperPioneerMovementComponent* GetMovementComponent(AActor* actor);
 
