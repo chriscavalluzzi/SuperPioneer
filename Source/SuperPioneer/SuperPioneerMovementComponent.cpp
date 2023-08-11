@@ -223,6 +223,7 @@ void USuperPioneerMovementComponent::CheckForReticleHUDRebind() {
 						UpdateJumpChargeIndicator();
 						isGroundSlamIndicatorVisible = true;
 						UpdateGroundSlamIndicator();
+						reticleHUD->Reset();
 					}
 			}
 	}

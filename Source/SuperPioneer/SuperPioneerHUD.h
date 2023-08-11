@@ -12,6 +12,9 @@ class SUPERPIONEER_API USuperPioneerHUD : public UUserWidget
 public:
 
 	UFUNCTION(BlueprintImplementableEvent)
+	void Reset();
+
+	UFUNCTION(BlueprintImplementableEvent)
 	void ShowJumpChargeIndicator();
 
 	UFUNCTION(BlueprintImplementableEvent)
