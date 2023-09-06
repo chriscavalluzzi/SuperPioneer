@@ -104,7 +104,7 @@ public:
     float groundSlamInitialVelocity;
 
     UPROPERTY(BlueprintReadWrite)
-    float groundSlamAcceleration;
+    float groundSlamAccelerationV2;
 
     UPROPERTY(BlueprintReadWrite)
     float groundSlamMaxSpeed;

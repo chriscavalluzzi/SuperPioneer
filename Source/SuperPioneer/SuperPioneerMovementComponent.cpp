@@ -144,7 +144,7 @@ void USuperPioneerMovementComponent::ReloadConfig() {
 		config_groundSlamUIEnabled = SPConfig.groundSlam.groundSlamUIEnabled;
 		config_groundSlamMaxAngle = SPConfig.groundSlam.groundSlamMaxAngle;
 		config_groundSlamInitialVelocity = SPConfig.groundSlam.groundSlamInitialVelocity * 100.0f;
-		config_groundSlamAcceleration = SPConfig.groundSlam.groundSlamAcceleration * 100.f * 100.f;
+		config_groundSlamAcceleration = SPConfig.groundSlam.groundSlamAccelerationV2 * 100.f * 100.f;
 		config_groundSlamMaxSpeed = SPConfig.groundSlam.groundSlamMaxSpeed * 100.0f;
 		config_groundSlamGroundFriction = SPConfig.groundSlam.groundSlamGroundFriction;
 
