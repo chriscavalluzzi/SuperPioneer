@@ -61,6 +61,7 @@ private:
 	void AddReticleHUD();
 	void CheckForReticleHUDRebind();
 	void SetIsFalling(bool newIsFalling);
+	FVector CheckVelocityAdd(FVector force);
 	bool IsSafeToAllowPowers();
 	RCO* GetRCO();
 	AFGCharacterPlayer* GetPlayer();
@@ -180,6 +181,7 @@ private:
 	float config_groundSlamMaxAngle;
 	float config_groundSlamInitialVelocity;
 	float config_groundSlamAcceleration;
+	float config_groundSlamMaxSpeed;
 	float config_groundSlamGroundFriction;
 
 	bool isGroundSlamming;
@@ -192,7 +194,7 @@ private:
 	void GroundSlamTick(float deltaTime);
 	void UpdateGroundSlamIndicator();
 	void GroundSlamLaunch(FVector vector);
-	void GroundSlamAddForce(FVector force);
+	void GroundSlamAddForce(FVector force, float deltaTime);
 	void CrouchReleased();
 
 	// Other

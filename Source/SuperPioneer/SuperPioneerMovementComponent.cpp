@@ -144,7 +144,8 @@ void USuperPioneerMovementComponent::ReloadConfig() {
 		config_groundSlamUIEnabled = SPConfig.groundSlam.groundSlamUIEnabled;
 		config_groundSlamMaxAngle = SPConfig.groundSlam.groundSlamMaxAngle;
 		config_groundSlamInitialVelocity = SPConfig.groundSlam.groundSlamInitialVelocity * 100.0f;
-		config_groundSlamAcceleration = SPConfig.groundSlam.groundSlamAcceleration * 100.f;
+		config_groundSlamAcceleration = SPConfig.groundSlam.groundSlamAcceleration * 100.f * 100.f;
+		config_groundSlamMaxSpeed = SPConfig.groundSlam.groundSlamMaxSpeed * 100.0f;
 		config_groundSlamGroundFriction = SPConfig.groundSlam.groundSlamGroundFriction;
 
 		config_disableFallDamage = SPConfig.general.disableFallDamage;
@@ -233,6 +234,22 @@ void USuperPioneerMovementComponent::SetIsFalling(bool newIsFalling) {
 	isFalling = newIsFalling;
 	if (customAnimInstance) {
 		customAnimInstance->isFalling = newIsFalling;
+	}
+}
+
+FVector USuperPioneerMovementComponent::CheckVelocityAdd(FVector added_velocity) {
+	FVector current_velocity = GetPlayerMovementComponent()->Velocity;
+	if (current_velocity.Length() >= config_groundSlamMaxSpeed) {
+		// Already at max speed
+		return FVector(0,0,0);
+	} else if ((current_velocity + added_velocity).Length() > config_groundSlamMaxSpeed) {
+		// Will exceed max speed, limit added velocity
+		FVector attempted_velocity = current_velocity + added_velocity;
+		FVector final_velocity = attempted_velocity.GetSafeNormal(0) * config_groundSlamMaxSpeed;
+		return final_velocity - current_velocity;
+	} else {
+		// Will not exceed max speed
+		return added_velocity;
 	}
 }
 
@@ -823,7 +840,7 @@ void USuperPioneerMovementComponent::GroundSlamTick(float deltaTime) {
 			if (IsHoverPackHovering()) {
 				OnLanded(); // Hover started, cancel ground slam
 			} else {
-				GroundSlamAddForce(groundSlamDirection * config_groundSlamAcceleration);
+				GroundSlamAddForce(groundSlamDirection * config_groundSlamAcceleration, deltaTime);
 			}
 		}
 		UpdateGroundSlamIndicator();
@@ -853,7 +870,12 @@ void USuperPioneerMovementComponent::GroundSlamLaunch(FVector vector) {
 	}
 }
 
-void USuperPioneerMovementComponent::GroundSlamAddForce(FVector force) {
+void USuperPioneerMovementComponent::GroundSlamAddForce(FVector force, float deltaTime) {
+	float player_mass = GetPlayerMovementComponent()->Mass;
+	FVector estimated_additional_velocity = force * deltaTime / player_mass;
+	float safeDeltaTime = deltaTime > 0.00001 ? deltaTime : 0.00001;
+	force = CheckVelocityAdd(estimated_additional_velocity) * player_mass / safeDeltaTime;
+
 	GetPlayerMovementComponent()->AddForce(force);
 
 	RCO* rco = GetRCO();
