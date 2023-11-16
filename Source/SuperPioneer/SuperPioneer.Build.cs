@@ -27,7 +27,6 @@ public class SuperPioneer : ModuleRules
             "AIModule",
             "GameplayTasks",
             "SlateCore", "Slate", "UMG",
-            "InstancedSplines",
             "RenderCore",
             "CinematicCamera",
             "Foliage",

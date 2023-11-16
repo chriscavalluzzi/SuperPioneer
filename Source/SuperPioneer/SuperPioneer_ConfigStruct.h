@@ -15,10 +15,10 @@ struct FSuperPioneer_ConfigStruct_general {
     GENERATED_BODY()
 public:
     UPROPERTY(BlueprintReadWrite)
-    bool animationsEnabled;
+    bool animationsEnabled{};
 
     UPROPERTY(BlueprintReadWrite)
-    bool disableFallDamage;
+    bool disableFallDamage{};
 };
 
 USTRUCT(BlueprintType)
@@ -26,22 +26,22 @@ struct FSuperPioneer_ConfigStruct_superSprint {
     GENERATED_BODY()
 public:
     UPROPERTY(BlueprintReadWrite)
-    bool superSprintEnabled;
+    bool superSprintEnabled{};
 
     UPROPERTY(BlueprintReadWrite)
-    float superSprintMaxSpeedMps;
+    float superSprintMaxSpeedMps{};
 
     UPROPERTY(BlueprintReadWrite)
-    float superSprintAccelerationEasing;
+    float superSprintAccelerationEasing{};
 
     UPROPERTY(BlueprintReadWrite)
-    float superSprintAccelerationMultiplier;
+    float superSprintAccelerationMultiplier{};
 
     UPROPERTY(BlueprintReadWrite)
-    float superSprintGroundFriction;
+    float superSprintGroundFriction{};
 
     UPROPERTY(BlueprintReadWrite)
-    float superSprintMaxStepHeight;
+    float superSprintMaxStepHeight{};
 };
 
 USTRUCT(BlueprintType)
@@ -49,19 +49,19 @@ struct FSuperPioneer_ConfigStruct_superJumpCharging {
     GENERATED_BODY()
 public:
     UPROPERTY(BlueprintReadWrite)
-    bool jumpChargingEnabled;
+    bool jumpChargingEnabled{};
 
     UPROPERTY(BlueprintReadWrite)
-    bool jumpChargingUIEnabled;
+    bool jumpChargingUIEnabled{};
 
     UPROPERTY(BlueprintReadWrite)
-    float superJumpHoldMultiplierMax;
+    float superJumpHoldMultiplierMax{};
 
     UPROPERTY(BlueprintReadWrite)
-    float superJumpHoldTimeMin;
+    float superJumpHoldTimeMin{};
 
     UPROPERTY(BlueprintReadWrite)
-    float superJumpHoldTimeMax;
+    float superJumpHoldTimeMax{};
 };
 
 USTRUCT(BlueprintType)
@@ -69,22 +69,22 @@ struct FSuperPioneer_ConfigStruct_superJumpModifications {
     GENERATED_BODY()
 public:
     UPROPERTY(BlueprintReadWrite)
-    bool jumpModificationsEnabled;
+    bool jumpModificationsEnabled{};
 
     UPROPERTY(BlueprintReadWrite)
-    float superJumpSpeedMultiplierMax;
+    float superJumpSpeedMultiplierMax{};
 
     UPROPERTY(BlueprintReadWrite)
-    float maxAirControl;
+    float maxAirControl{};
 
     UPROPERTY(BlueprintReadWrite)
-    float gravityScalingMultiplier;
+    float gravityScalingMultiplier{};
 
     UPROPERTY(BlueprintReadWrite)
-    float jumpMultiplierPerGravityScale;
+    float jumpMultiplierPerGravityScale{};
 
     UPROPERTY(BlueprintReadWrite)
-    float swimmingJumpMultiplier;
+    float swimmingJumpMultiplier{};
 };
 
 USTRUCT(BlueprintType)
@@ -92,25 +92,25 @@ struct FSuperPioneer_ConfigStruct_groundSlam {
     GENERATED_BODY()
 public:
     UPROPERTY(BlueprintReadWrite)
-    bool groundSlamEnabled;
+    bool groundSlamEnabled{};
 
     UPROPERTY(BlueprintReadWrite)
-    bool groundSlamUIEnabled;
+    bool groundSlamUIEnabled{};
 
     UPROPERTY(BlueprintReadWrite)
-    float groundSlamMaxAngle;
+    float groundSlamMaxAngle{};
 
     UPROPERTY(BlueprintReadWrite)
-    float groundSlamInitialVelocity;
+    float groundSlamInitialVelocity{};
 
     UPROPERTY(BlueprintReadWrite)
-    float groundSlamAccelerationV2;
+    float groundSlamAccelerationV2{};
 
     UPROPERTY(BlueprintReadWrite)
-    float groundSlamMaxSpeed;
+    float groundSlamMaxSpeed{};
 
     UPROPERTY(BlueprintReadWrite)
-    float groundSlamGroundFriction;
+    float groundSlamGroundFriction{};
 };
 
 /* Struct generated from Mod Configuration Asset '/SuperPioneer/SuperPioneer_Config' */
@@ -119,26 +119,28 @@ struct FSuperPioneer_ConfigStruct {
     GENERATED_BODY()
 public:
     UPROPERTY(BlueprintReadWrite)
-    FSuperPioneer_ConfigStruct_general general;
+    FSuperPioneer_ConfigStruct_general general{};
 
     UPROPERTY(BlueprintReadWrite)
-    FSuperPioneer_ConfigStruct_superSprint superSprint;
+    FSuperPioneer_ConfigStruct_superSprint superSprint{};
 
     UPROPERTY(BlueprintReadWrite)
-    FSuperPioneer_ConfigStruct_superJumpCharging superJumpCharging;
+    FSuperPioneer_ConfigStruct_superJumpCharging superJumpCharging{};
 
     UPROPERTY(BlueprintReadWrite)
-    FSuperPioneer_ConfigStruct_superJumpModifications superJumpModifications;
+    FSuperPioneer_ConfigStruct_superJumpModifications superJumpModifications{};
 
     UPROPERTY(BlueprintReadWrite)
-    FSuperPioneer_ConfigStruct_groundSlam groundSlam;
+    FSuperPioneer_ConfigStruct_groundSlam groundSlam{};
 
     /* Retrieves active configuration value and returns object of this struct containing it */
-    static FSuperPioneer_ConfigStruct GetActiveConfig() {
+    static FSuperPioneer_ConfigStruct GetActiveConfig(UObject* WorldContext) {
         FSuperPioneer_ConfigStruct ConfigStruct{};
         FConfigId ConfigId{"SuperPioneer", ""};
-        UConfigManager* ConfigManager = GEngine->GetEngineSubsystem<UConfigManager>();
-        ConfigManager->FillConfigurationStruct(ConfigId, FDynamicStructInfo{FSuperPioneer_ConfigStruct::StaticStruct(), &ConfigStruct});
+        if (const UWorld* World = GEngine->GetWorldFromContextObject(WorldContext, EGetWorldErrorMode::ReturnNull)) {
+            UConfigManager* ConfigManager = World->GetGameInstance()->GetSubsystem<UConfigManager>();
+            ConfigManager->FillConfigurationStruct(ConfigId, FDynamicStructInfo{FSuperPioneer_ConfigStruct::StaticStruct(), &ConfigStruct});
+        }
         return ConfigStruct;
     }
 };

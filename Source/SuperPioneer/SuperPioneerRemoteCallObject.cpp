@@ -1,4 +1,5 @@
 #include "SuperPioneerRemoteCallObject.h"
+#include "Net/UnrealNetwork.h"
 
 void USuperPioneerRemoteCallObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);

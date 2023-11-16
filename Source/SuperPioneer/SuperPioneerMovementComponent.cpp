@@ -10,6 +10,9 @@
 #include "FGCharacterPlayer.h"
 #include "Equipment/FGHoverPack.h"
 #include "FGCharacterMovementComponent.h"
+#include "Components/CanvasPanel.h"
+#include "Components/CanvasPanelSlot.h"
+#include "Engine/GameEngine.h"
 
 USuperPioneerMovementComponent::USuperPioneerMovementComponent() {
   UE_LOG(LogTemp, Warning, TEXT("[SP] Starting SP Movement Component Construction"))
@@ -116,9 +119,9 @@ void USuperPioneerMovementComponent::BindActions(AFGCharacterPlayer* player) {
 }
 
 void USuperPioneerMovementComponent::ReloadConfig() {
-	if (!isDestroyed && IsValid(GetPlayer()) && IsValid(GetPlayer()->Controller)) {
+	if (!isDestroyed && IsValid(GetPlayer()) && IsValid(GetPlayer()->Controller) && IsValid(GetPlayer()->GetWorld())) {
 
-		FSuperPioneer_ConfigStruct SPConfig = FSuperPioneer_ConfigStruct::GetActiveConfig();
+		FSuperPioneer_ConfigStruct SPConfig = FSuperPioneer_ConfigStruct::GetActiveConfig(GetPlayer()->GetWorld());
 
 		config_superSprintEnabled = SPConfig.superSprint.superSprintEnabled;
 		config_superSprintMaxSpeed = SPConfig.superSprint.superSprintMaxSpeedMps * 100.f;

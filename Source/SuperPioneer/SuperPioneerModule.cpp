@@ -70,7 +70,7 @@ void FSuperPioneerModule::RegisterHooks() {
 			UE_LOG(LogTemp, Warning, TEXT("[SP] Config marked dirty, reloading...."))
 			localSPMovementComponent->ReloadConfig();
 		}
-	})
+	});
 
 	AFGCharacterPlayer* examplePlayerCharacter = GetMutableDefault<AFGCharacterPlayer>();
 
@@ -79,7 +79,7 @@ void FSuperPioneerModule::RegisterHooks() {
 		if (component && component->AttemptGroundSlam()) {
 			scope.Cancel();
 		}
-	})
+	});
 	SUBSCRIBE_METHOD_VIRTUAL(AFGCharacterPlayer::Jump, examplePlayerCharacter, [this](auto& scope, AFGCharacterPlayer* self) {
 		USuperPioneerMovementComponent* component = GetMovementComponent(self);
 		if (component) {
