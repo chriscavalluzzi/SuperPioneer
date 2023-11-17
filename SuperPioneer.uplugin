@@ -1,8 +1,8 @@
 {
 	"FileVersion": 3,
 	"Version": 2,
-	"VersionName": "2.1.0",
-	"SemVersion": "2.1.0",
+	"VersionName": "2.1.1",
+	"SemVersion": "2.1.1",
 	"FriendlyName": "SuperPioneer",
 	"Description": "A super-powered player movement mod for Satisfactory. Sprint at the speed of sound and jump over mountains!",
 	"Category": "Modding",
@@ -30,6 +30,6 @@
 			"BasePlugin": false
 		}
 	],
-	"RemoteVersionRange": "^2.1.0",
+	"RemoteVersionRange": "^2.1.1",
 	"AcceptsAnyRemoteVersion": false
 }
