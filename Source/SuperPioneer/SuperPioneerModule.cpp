@@ -7,6 +7,7 @@
 #include "Animation/AnimInstance.h"
 #include "Equipment/FGHoverPack.h"
 #include "FGCharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 void FSuperPioneerModule::StartupModule() {
 	#if !WITH_EDITOR
