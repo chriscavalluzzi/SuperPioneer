@@ -282,6 +282,7 @@ USkeletalMeshComponent* USuperPioneerMovementComponent::GetMesh1P() {
 }
 
 void USuperPioneerMovementComponent::BeginPlay() {
+	UE_LOG(LogTemp, Warning, TEXT("[SP] SP Movement Component: BeginPlay"))
 	AddReticleHUD();
 	CheckForCustomAnimationToggle();
 	ReparentEquipment();
