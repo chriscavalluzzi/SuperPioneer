@@ -13,14 +13,12 @@
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Engine/GameEngine.h"
+#include "UObject/SoftObjectPtr.h"
 
 USuperPioneerMovementComponent::USuperPioneerMovementComponent() {
   UE_LOG(LogTemp, Warning, TEXT("[SP] Starting SP Movement Component Construction"))
 	PrimaryComponentTick.bCanEverTick = true;
 	Reset();
-
-	static ConstructorHelpers::FObjectFinder<UClass> anim(TEXT("Class'/SuperPioneer/Animations/SuperPioneer1PAnimation.SuperPioneer1PAnimation_C'"));
-	customAnimClass = anim.Object;
 };
 
 void USuperPioneerMovementComponent::Reset() {
@@ -311,6 +309,7 @@ void USuperPioneerMovementComponent::SetupCustomAnimationComponent() {
 	if (customSkeletalMesh || !config_animationsEnabled) return;
 
 	USkeletalMeshComponent* mesh1P = GetMesh1P();
+	const TSubclassOf<USuperPioneerAnimBlueprint> customAnimClass = TSoftClassPtr<USuperPioneerAnimBlueprint>(FSoftObjectPath(TEXT("Class'/SuperPioneer/Animations/SuperPioneer1PAnimation.SuperPioneer1PAnimation_C'"))).LoadSynchronous();
 
 	// Build custom SkeletalMeshComponent
 	customSkeletalMesh = DuplicateObject<USkeletalMeshComponent>(mesh1P, mesh1P->GetOuter(), "SPSkeletalMeshComponent"); // Make sure customSkeletalMesh is a UPROPERTY to avoid GC

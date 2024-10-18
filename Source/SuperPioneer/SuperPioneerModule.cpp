@@ -11,6 +11,7 @@
 
 void FSuperPioneerModule::StartupModule() {
 	#if !WITH_EDITOR
+	UE_LOG(LogTemp, Warning, TEXT("[SP] Starting module"))
 	RegisterHooks();
 	#endif
 }

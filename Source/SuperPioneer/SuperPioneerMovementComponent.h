@@ -73,7 +73,6 @@ private:
 	// Animation
 
 	UClass* vanillaAnimClass;
-	UClass* customAnimClass;
 	USuperPioneerAnimBlueprint* customAnimInstance;
 
 	UPROPERTY()
