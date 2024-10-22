@@ -528,9 +528,11 @@ void USuperPioneerMovementComponent::SprintTick(float deltaTime) {
 			SetPlayerSprintSpeed(CalculateSprintSpeed(sprintDuration));
 			SetPlayerMaxStepHeight(CalculateMaxStepHeight(sprintDuration));
 		}
-		if (!isFalling && GetPlayerMovementComponent()->IsFalling()) {
-			OnFalling();
-		}
+	}
+	if (!isFalling && GetPlayerMovementComponent()->IsFalling()) {
+		OnFalling();
+	}
+	if (config_superSprintEnabled) {
 		if (needToRestartSuperSprint) {
 			Invoke_SprintPressed();
 			needToRestartSuperSprint = false;
