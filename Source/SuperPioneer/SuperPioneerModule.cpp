@@ -142,6 +142,13 @@ void FSuperPioneerModule::RegisterHooks() {
 		}
 	});
 
+	SUBSCRIBE_METHOD_AFTER(AFGCharacterPlayer::OnPlayerCustomizationDataChanged, [this](AFGCharacterBase* self, const FPlayerCustomizationData& NewCustomizationData) {
+		USuperPioneerMovementComponent* component = GetMovementComponent(self);
+		if (component) {
+			component->RefreshMesh1PVisibility();
+		}
+	});
+
 }
 
 IMPLEMENT_GAME_MODULE(FSuperPioneerModule, SuperPioneer);

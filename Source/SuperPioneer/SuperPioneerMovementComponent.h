@@ -34,6 +34,7 @@ public:
 	void OnActiveEquipmentChanged();
 	void OnEquipmentEquipped(AFGCharacterPlayer* player, AFGEquipment* equipment);
 	void SwitchCameraMode(ECameraMode newMode);
+	void RefreshMesh1PVisibility();
 	bool AttemptGroundSlam();
 
 protected:
@@ -81,6 +82,7 @@ private:
 	bool config_animationsEnabled;
 
 	void CheckForCustomAnimationToggle();
+	bool IsEligableForCustomAnimations();
 	void SetupCustomAnimationComponent();
 	void DestroyCustomAnimationComponent();
 	void ReparentEquipment(USceneComponent* newParent = nullptr);
@@ -88,7 +90,6 @@ private:
 	void CustomAnimationTick(float deltaTime);
 	void CaptureVanillaPose();
 	void CaptureActiveEquipment();
-	void SwitchVisibleMesh(USkeletalMeshComponent* customSkeletalMesh);
 
 	// Sprinting
 

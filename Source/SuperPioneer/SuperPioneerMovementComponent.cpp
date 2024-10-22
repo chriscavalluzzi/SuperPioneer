@@ -298,12 +298,16 @@ void USuperPioneerMovementComponent::EndPlay(const EEndPlayReason::Type EndPlayR
 // Animation
 
 void USuperPioneerMovementComponent::CheckForCustomAnimationToggle() {
-	bool eligableForCustomAnimations = config_animationsEnabled && !isHoverPackEquipped;
+	bool eligableForCustomAnimations = IsEligableForCustomAnimations();
 	if (!customAnimInstance && eligableForCustomAnimations) {
 		SetupCustomAnimationComponent();
 	} else if (customAnimInstance && !eligableForCustomAnimations) {
 		DestroyCustomAnimationComponent();
 	}
+}
+
+bool USuperPioneerMovementComponent::IsEligableForCustomAnimations() {
+	return config_animationsEnabled && !isHoverPackEquipped;
 }
 
 void USuperPioneerMovementComponent::SetupCustomAnimationComponent() {
@@ -338,6 +342,14 @@ void USuperPioneerMovementComponent::DestroyCustomAnimationComponent() {
 
 	customSkeletalMesh->DestroyComponent();
 	customSkeletalMesh = nullptr;
+}
+
+void USuperPioneerMovementComponent::RefreshMesh1PVisibility() {
+	if (IsEligableForCustomAnimations()) {
+		GetMesh1P()->SetVisibility(false);
+		CaptureVanillaPose();
+		ReparentEquipment(customSkeletalMesh);
+	}
 }
 
 void USuperPioneerMovementComponent::SwitchCameraMode(ECameraMode newMode) {
