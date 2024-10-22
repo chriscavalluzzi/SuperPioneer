@@ -842,6 +842,8 @@ void USuperPioneerMovementComponent::GroundSlamTick(float deltaTime) {
 		if (isGroundSlamming) {
 			if (IsHoverPackHovering()) {
 				OnLanded(); // Hover started, cancel ground slam
+			} else if (GetPlayerMovementComponent()->IsSwimming()) {
+				OnLanded(); // Submerged, cancel ground slam
 			} else {
 				GroundSlamAddForce(groundSlamDirection * config_groundSlamAcceleration, deltaTime);
 			}
