@@ -321,6 +321,8 @@ void USuperPioneerMovementComponent::SetupCustomAnimationComponent() {
 	customSkeletalMesh->AnimScriptInstance = nullptr; // Breaks link to original AnimScriptInstance, ensures it not cleared during SetAnimClass
 	customSkeletalMesh->SetAnimClass(customAnimClass);
 	customSkeletalMesh->RegisterComponent();
+	AddTickPrerequisiteComponent(mesh1P);
+	customSkeletalMesh->AddTickPrerequisiteComponent(this);
 	customAnimInstance = Cast<USuperPioneerAnimBlueprint>(customSkeletalMesh->GetAnimInstance());
 
 	// Hide original SkeletalMeshComponent (but make sure it keeps updating)
