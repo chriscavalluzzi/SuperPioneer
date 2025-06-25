@@ -81,9 +81,9 @@ void USuperPioneerMovementComponent::BindActions(AFGCharacterPlayer* player) {
 	// Vanilla actions
 
 	const UFGInputSettings* inputSettings = UFGInputSettings::Get();
-	UInputAction* sprintAction = inputSettings->GetInputActionForTag(FGameplayTag::RequestGameplayTag(TEXT("Input.PlayerMovement.Sprint")));
-	UInputAction* crouchAction = inputSettings->GetInputActionForTag(FGameplayTag::RequestGameplayTag(TEXT("Input.PlayerMovement.Crouch")));
-	UInputAction* jumpAction = inputSettings->GetInputActionForTag(FGameplayTag::RequestGameplayTag(TEXT("Input.PlayerMovement.Jump")));
+	UInputAction* sprintAction = inputSettings->GetInputActionForTag(FGameplayTag::RequestGameplayTag(TEXT("Input.PlayerMovement.Sprint"))).Get();
+	UInputAction* crouchAction = inputSettings->GetInputActionForTag(FGameplayTag::RequestGameplayTag(TEXT("Input.PlayerMovement.Crouch"))).Get();
+	UInputAction* jumpAction = inputSettings->GetInputActionForTag(FGameplayTag::RequestGameplayTag(TEXT("Input.PlayerMovement.Jump"))).Get();
 
 	UEnhancedInputComponent* enhancedInput = Cast<UEnhancedInputComponent>(this->inputComponent);
 	enhancedInput->BindAction(jumpAction, ETriggerEvent::Started, this, &USuperPioneerMovementComponent::JumpPressed);

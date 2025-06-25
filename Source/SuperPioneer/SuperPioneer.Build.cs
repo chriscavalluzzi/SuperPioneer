@@ -56,5 +56,7 @@ public class SuperPioneer : ModuleRules
 			PublicDependencyModuleNames.AddRange(new string[] {"OnlineBlueprintSupport", "AnimGraph"});
 		}
         PublicDependencyModuleNames.AddRange(new string[] {"FactoryGame", "SML"});
+	
+	CppStandard = CppStandardVersion.Cpp20;
     }
 }
