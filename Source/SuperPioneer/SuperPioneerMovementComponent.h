@@ -77,7 +77,7 @@ private:
 	USuperPioneerAnimBlueprint* customAnimInstance;
 
 	UPROPERTY()
-	USkeletalMeshComponent* customSkeletalMesh;
+	TObjectPtr<USkeletalMeshComponent> customSkeletalMesh;
 
 	bool config_animationsEnabled;
 
