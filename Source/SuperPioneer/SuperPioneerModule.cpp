@@ -47,8 +47,8 @@ void FSuperPioneerModule::SetupMovementComponent(AFGCharacterPlayer* player, UIn
 
 		if (player->IsLocallyControlled()) {
 			if (localSPMovementComponent && IsValid(localSPMovementComponent)) {
-				UE_LOG(LogTemp, Warning, TEXT("[SP] Destroying old component"))
-				localSPMovementComponent->DestroyComponent();
+				//UE_LOG(LogTemp, Warning, TEXT("[SP] Destroying old component"))
+				//localSPMovementComponent->DestroyComponent();
 			}
 			localSPMovementComponent = newComponent;
 		}
@@ -138,12 +138,17 @@ void FSuperPioneerModule::RegisterHooks() {
 
 	AFGHoverPack* exampleHoverPack = GetMutableDefault<AFGHoverPack>();
 
-	// TODO: Fix this function mapping
-	/*SUBSCRIBE_METHOD_VIRTUAL(AFGHoverPack::OnCharacterMovementModeChanged, exampleHoverPack, [this](auto& scope, const AFGHoverPack* self, EMovementMode PreviousMovementMode, uint8 PreviousCustomMode, EMovementMode NewMovementMode, uint8 NewCustomMode) {
-		if (IsValid(localSPMovementComponent)) {
-			localSPMovementComponent->CheckForHoverPackLand(PreviousMovementMode, PreviousCustomMode, NewMovementMode, NewCustomMode);
+	SUBSCRIBE_METHOD_VIRTUAL(
+			AFGHoverPack::OnCharacterMovementModeChanged,
+			exampleHoverPack,
+			[this](auto& scope, const AFGHoverPack* self, class ACharacter* character, EMovementMode PreviousMovementMode, uint8 PreviousCustomMode
+		) {
+		if (IsValid(character) && IsValid(character->GetCharacterMovement())) {
+			if (IsValid(localSPMovementComponent)) {
+				localSPMovementComponent->CheckForHoverPackLand(PreviousMovementMode, PreviousCustomMode, character->GetCharacterMovement()->MovementMode);
+			}
 		}
-	});*/
+	});
 
 	SUBSCRIBE_METHOD_AFTER(AFGCharacterPlayer::OnPlayerCustomizationDataChanged, [this](AFGCharacterBase* self, const FPlayerCustomizationData& NewCustomizationData) {
 		USuperPioneerMovementComponent* component = GetMovementComponent(self);

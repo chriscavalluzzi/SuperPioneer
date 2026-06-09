@@ -710,7 +710,7 @@ void USuperPioneerMovementComponent::OnLanded() {
 	}
 }
 
-void USuperPioneerMovementComponent::CheckForHoverPackLand(EMovementMode previousMovementMode, uint8 previousCustomMode, EMovementMode newMovementMode, uint8 newCustomMode) {
+void USuperPioneerMovementComponent::CheckForHoverPackLand(EMovementMode previousMovementMode, uint8 previousCustomMode, EMovementMode newMovementMode) {
 	if (previousMovementMode == EMovementMode::MOVE_Custom && previousCustomMode == 4 && newMovementMode == EMovementMode::MOVE_Walking) {
 		OnLanded();
 	}
