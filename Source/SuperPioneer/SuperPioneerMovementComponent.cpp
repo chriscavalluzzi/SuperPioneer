@@ -14,6 +14,7 @@
 #include "Components/CanvasPanelSlot.h"
 #include "Engine/GameEngine.h"
 #include "UObject/SoftObjectPtr.h"
+#include "Blueprint/UserWidget.h"
 
 USuperPioneerMovementComponent::USuperPioneerMovementComponent() {
   UE_LOG(LogTemp, Warning, TEXT("[SP] Starting SP Movement Component Construction"))
@@ -195,8 +196,8 @@ void USuperPioneerMovementComponent::CheckForActionRebind() {
 void USuperPioneerMovementComponent::AddReticleHUD() {
 	if (!isUIBuilt) {
 		UE_LOG(LogTemp, Warning, TEXT("[SP] Attempting to create reticle HUD..."))
-		FStringClassReference groundSlamWidgetClassRef(TEXT("WidgetBlueprint'/SuperPioneer/SuperPioneerReticleHUD.SuperPioneerReticleHUD_C'"));
-		if (UClass* groundSlamWidgetClass = groundSlamWidgetClassRef.TryLoadClass<UUserWidget>()) {
+		FSoftObjectPath groundSlamWidgetClassPath(TEXT("WidgetBlueprint'/SuperPioneer/SuperPioneerReticleHUD.SuperPioneerReticleHUD_C'"));
+		if (const TSubclassOf<UUserWidget> groundSlamWidgetClass = TSoftClassPtr<UUserWidget>(groundSlamWidgetClassPath).LoadSynchronous()) {
 			if(UUserWidget* gameUI = GetGameUI()) {
 				if (UCanvasPanel* parentWidget = gameUI->WidgetTree->FindWidget<UCanvasPanel>("StandardUI")) {
 					reticleHUD = CreateWidget<USuperPioneerHUD>(((UGameEngine*)GEngine)->GameInstance, groundSlamWidgetClass, reticleHUDWidgetName);
@@ -709,7 +710,7 @@ void USuperPioneerMovementComponent::OnLanded() {
 	}
 }
 
-void USuperPioneerMovementComponent::CheckForHoverPackLand(EMovementMode previousMovementMode, uint8 previousCustomMode, EMovementMode newMovementMode, uint8 newCustomMode) {
+void USuperPioneerMovementComponent::CheckForHoverPackLand(EMovementMode previousMovementMode, uint8 previousCustomMode, EMovementMode newMovementMode) {
 	if (previousMovementMode == EMovementMode::MOVE_Custom && previousCustomMode == 4 && newMovementMode == EMovementMode::MOVE_Walking) {
 		OnLanded();
 	}

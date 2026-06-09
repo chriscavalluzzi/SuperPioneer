@@ -11,10 +11,11 @@ void USuperPioneerRemoteCallObject::GetLifetimeReplicatedProps(TArray<FLifetimeP
 UFGCharacterMovementComponent* USuperPioneerRemoteCallObject::GetMovementComponent(AFGCharacterPlayer* actor) {
 	TArray<UFGCharacterMovementComponent*> components;
 	actor->GetComponents<UFGCharacterMovementComponent>(components);
-	for (int i = 0; i < components.Num(); i++) {
-		return components[i];
+	if (components.Num() >= 1) {
+		return components[0];
+	} else {
+		return nullptr;
 	}
-	return nullptr;
 }
 
 void USuperPioneerRemoteCallObject::ServerSetSprintSpeed_Implementation(AFGCharacterPlayer* player, float newMaxSprintSpeed) {

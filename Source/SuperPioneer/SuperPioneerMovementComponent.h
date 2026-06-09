@@ -28,7 +28,7 @@ public:
 	void ReloadConfig();
 	bool CheckAndConsumeJump();
 	void OnLanded();
-	void CheckForHoverPackLand(EMovementMode previousMovementMode, uint8 previousCustomMode, EMovementMode newMovementMode, uint8 newCustomMode);
+	void CheckForHoverPackLand(EMovementMode previousMovementMode, uint8 previousCustomMode, EMovementMode newMovementMode);
 	void OnFalling();
 	UFUNCTION()
 	void OnActiveEquipmentChanged();
@@ -77,7 +77,7 @@ private:
 	USuperPioneerAnimBlueprint* customAnimInstance;
 
 	UPROPERTY()
-	USkeletalMeshComponent* customSkeletalMesh;
+	TObjectPtr<USkeletalMeshComponent> customSkeletalMesh;
 
 	bool config_animationsEnabled;
 

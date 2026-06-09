@@ -40,10 +40,14 @@ public class SuperPioneer : ModuleRules
             "Json",
         });
 
+        // Editor-only modules
+        if (Target.bBuildEditor) {
+            PrivateDependencyModuleNames.AddRange(new string[] { "UMGEditor" });
+        }
+
         // FactoryGame plugins
         PublicDependencyModuleNames.AddRange(new[] {
             "AbstractInstance",
-            "InstancedSplinesComponent",
             "SignificanceISPC"
         });
 
