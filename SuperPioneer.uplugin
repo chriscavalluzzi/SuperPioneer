@@ -31,5 +31,6 @@
 	],
 	"RemoteVersionRange": "^2.1.6",
 	"AcceptsAnyRemoteVersion": false,
-	"GameVersion": ">=416835"
+	"GameVersion": ">=416835",
+	"BuiltInInitialFeatureState": "Active"
 }

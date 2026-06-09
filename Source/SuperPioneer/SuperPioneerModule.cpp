@@ -19,10 +19,12 @@ void FSuperPioneerModule::StartupModule() {
 USuperPioneerMovementComponent* FSuperPioneerModule::GetMovementComponent(AActor* actor) {
 	TArray<USuperPioneerMovementComponent*> components;
 	actor->GetComponents<USuperPioneerMovementComponent>(components);
-	for (int i = 0; i < components.Num(); i++) {
-		return components[i];
+	if (components.Num() >= 1) {
+		return components[0];
 	}
-	return nullptr;
+	else {
+		return nullptr;
+	}
 }
 
 void FSuperPioneerModule::SetupMovementComponent(AFGCharacterPlayer* player, UInputComponent* inputComponent) {
@@ -136,11 +138,12 @@ void FSuperPioneerModule::RegisterHooks() {
 
 	AFGHoverPack* exampleHoverPack = GetMutableDefault<AFGHoverPack>();
 
-	SUBSCRIBE_METHOD_VIRTUAL(AFGHoverPack::OnCharacterMovementModeChanged, exampleHoverPack, [this](auto& scope, const AFGHoverPack* self, EMovementMode PreviousMovementMode, uint8 PreviousCustomMode, EMovementMode NewMovementMode, uint8 NewCustomMode) {
+	// TODO: Fix this function mapping
+	/*SUBSCRIBE_METHOD_VIRTUAL(AFGHoverPack::OnCharacterMovementModeChanged, exampleHoverPack, [this](auto& scope, const AFGHoverPack* self, EMovementMode PreviousMovementMode, uint8 PreviousCustomMode, EMovementMode NewMovementMode, uint8 NewCustomMode) {
 		if (IsValid(localSPMovementComponent)) {
 			localSPMovementComponent->CheckForHoverPackLand(PreviousMovementMode, PreviousCustomMode, NewMovementMode, NewCustomMode);
 		}
-	});
+	});*/
 
 	SUBSCRIBE_METHOD_AFTER(AFGCharacterPlayer::OnPlayerCustomizationDataChanged, [this](AFGCharacterBase* self, const FPlayerCustomizationData& NewCustomizationData) {
 		USuperPioneerMovementComponent* component = GetMovementComponent(self);
