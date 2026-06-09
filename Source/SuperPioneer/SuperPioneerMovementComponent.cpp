@@ -194,7 +194,6 @@ void USuperPioneerMovementComponent::CheckForActionRebind() {
 }
 
 void USuperPioneerMovementComponent::AddReticleHUD() {
-	// TODO: Test & cleanup
 	if (!isUIBuilt) {
 		UE_LOG(LogTemp, Warning, TEXT("[SP] Attempting to create reticle HUD..."))
 		FSoftObjectPath groundSlamWidgetClassPath(TEXT("WidgetBlueprint'/SuperPioneer/SuperPioneerReticleHUD.SuperPioneerReticleHUD_C'"));
