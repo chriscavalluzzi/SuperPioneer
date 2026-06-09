@@ -197,9 +197,8 @@ void USuperPioneerMovementComponent::AddReticleHUD() {
 	// TODO: Test & cleanup
 	if (!isUIBuilt) {
 		UE_LOG(LogTemp, Warning, TEXT("[SP] Attempting to create reticle HUD..."))
-		//FStringClassReference groundSlamWidgetClassRef(TEXT("WidgetBlueprint'/SuperPioneer/SuperPioneerReticleHUD.SuperPioneerReticleHUD_C'"));
-		//if (UClass* groundSlamWidgetClass = groundSlamWidgetClassRef.TryLoadClass<UUserWidget>()) {
-		if (const TSubclassOf<UUserWidget> groundSlamWidgetClass = TSoftClassPtr<UUserWidget>(FSoftObjectPath(TEXT("UMGEditor.WidgetBlueprint'/SuperPioneer/SuperPioneerReticleHUD.SuperPioneerReticleHUD'"))).LoadSynchronous()) {
+		FSoftObjectPath groundSlamWidgetClassPath(TEXT("WidgetBlueprint'/SuperPioneer/SuperPioneerReticleHUD.SuperPioneerReticleHUD_C'"));
+		if (const TSubclassOf<UUserWidget> groundSlamWidgetClass = TSoftClassPtr<UUserWidget>(groundSlamWidgetClassPath).LoadSynchronous()) {
 			if(UUserWidget* gameUI = GetGameUI()) {
 				if (UCanvasPanel* parentWidget = gameUI->WidgetTree->FindWidget<UCanvasPanel>("StandardUI")) {
 					reticleHUD = CreateWidget<USuperPioneerHUD>(((UGameEngine*)GEngine)->GameInstance, groundSlamWidgetClass, reticleHUDWidgetName);
